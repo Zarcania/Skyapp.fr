@@ -7122,12 +7122,18 @@ const QuoteCreate = () => {
   const [showForm, setShowForm] = useState(false);
   const [showClientForm, setShowClientForm] = useState(false);
   const [activeTab, setActiveTab] = useState('quotes');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [editingQuote, setEditingQuote] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false); // Mode édition pour le formulaire principal
+  const [expandedColumn, setExpandedColumn] = useState(null); // Pour le menu déroulant des colonnes
   
   // NEW: Templates management states
   const [showTemplates, setShowTemplates] = useState(false);
   const [templates, setTemplates] = useState([]);
   const [showTemplateForm, setShowTemplateForm] = useState(false);
-  const [templateData, setTemplateData] = useState({
+  const [isEditingTemplate, setIsEditingTemplate] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [templateFormData, setTemplateFormData] = useState({
     name: '',
     description: '',
     category: 'standard',
@@ -7136,11 +7142,24 @@ const QuoteCreate = () => {
   
   const [formData, setFormData] = useState({
     client_id: '',
+    client_name: '', // Nom du client (manuel ou sélectionné)
     title: '',
     description: '',
     amount: '',
+    status: 'DRAFT', // Statut par défaut
     items: [{ name: '', quantity: 1, price: 0, total: 0 }]
   });
+  
+  // États pour l'autocomplétion des clients
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientSuggestions, setShowClientSuggestions] = useState(false);
+  const [filteredClients, setFilteredClients] = useState([]);
+  
+  // États pour l'autocomplétion des articles du catalogue
+  const [itemSearchStates, setItemSearchStates] = useState({});
+  const [showItemSuggestions, setShowItemSuggestions] = useState({});
+  const [catalogProducts, setCatalogProducts] = useState([]);
+  
   const [clientData, setClientData] = useState({
     nom: '',
     email: '',
@@ -7152,6 +7171,7 @@ const QuoteCreate = () => {
   useEffect(() => {
     loadData();
     loadWorksites();
+    loadCatalogProducts();
   }, []);
 
   const loadData = async () => {
@@ -7177,6 +7197,20 @@ const QuoteCreate = () => {
     }
   };
 
+  const loadCatalogProducts = () => {
+    // Charger les produits du catalogue (simulation)
+    const products = [
+      { id: '1', name: 'Détection réseaux électriques', price: 150, unit: 'mètre linéaire' },
+      { id: '2', name: 'Recherche canalisations eau', price: 120, unit: 'mètre linéaire' },
+      { id: '3', name: 'Inspection vidéo canalisation', price: 200, unit: 'mètre linéaire' },
+      { id: '4', name: 'Localisation géoradar', price: 180, unit: 'mètre linéaire' },
+      { id: '5', name: 'Détection gaz', price: 140, unit: 'mètre linéaire' },
+      { id: '6', name: 'Réparation fuite d\'eau', price: 250, unit: 'intervention' },
+      { id: '7', name: 'Débouchage canalisation', price: 180, unit: 'intervention' }
+    ];
+    setCatalogProducts(products);
+  };
+
   const addQuickClient = async () => {
     try {
       const response = await axios.post(`${API}/clients`, clientData, {
@@ -7192,6 +7226,71 @@ const QuoteCreate = () => {
       console.error('Erreur ajout client:', error);
       alert('Erreur lors de l\'ajout du client');
     }
+  };
+
+  // Gestion de l'autocomplétion des clients
+  const handleClientSearchChange = (e) => {
+    const value = e.target.value;
+    setClientSearch(value);
+    setFormData(prev => ({...prev, client_name: value, client_id: ''}));
+    
+    if (value.trim().length > 0) {
+      const filtered = clients.filter(client => 
+        client.nom.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredClients(filtered);
+      setShowClientSuggestions(true);
+    } else {
+      setFilteredClients([]);
+      setShowClientSuggestions(false);
+    }
+  };
+
+  const selectClient = (client) => {
+    setClientSearch(client.nom);
+    setFormData(prev => ({...prev, client_id: client.id, client_name: client.nom}));
+    setShowClientSuggestions(false);
+  };
+
+  // Gestion autocomplétion articles
+  const handleItemNameChange = (index, value) => {
+    // Mettre à jour le nom de l'article
+    updateItem(index, 'name', value);
+    
+    // Mettre à jour l'état de recherche pour cet index
+    setItemSearchStates(prev => ({...prev, [index]: value}));
+    
+    // Filtrer les produits du catalogue
+    if (value.trim().length > 0) {
+      setShowItemSuggestions(prev => ({...prev, [index]: true}));
+    } else {
+      setShowItemSuggestions(prev => ({...prev, [index]: false}));
+    }
+  };
+
+  const selectCatalogProduct = (index, product) => {
+    // Remplir l'article avec les données du produit
+    const updatedItems = [...formData.items];
+    updatedItems[index] = {
+      ...updatedItems[index],
+      name: product.name,
+      price: product.price,
+      quantity: updatedItems[index].quantity || 1,
+      total: product.price * (updatedItems[index].quantity || 1)
+    };
+    
+    setFormData(prev => ({...prev, items: updatedItems}));
+    setItemSearchStates(prev => ({...prev, [index]: product.name}));
+    setShowItemSuggestions(prev => ({...prev, [index]: false}));
+  };
+
+  const getFilteredProducts = (index) => {
+    const searchTerm = itemSearchStates[index] || '';
+    if (!searchTerm.trim()) return [];
+    
+    return catalogProducts.filter(product =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
   };
 
   const acceptQuote = async (quoteId) => {
@@ -7232,32 +7331,61 @@ const QuoteCreate = () => {
     }
   };
 
-  const moveToTrash = async (quoteId) => {
+  const deleteQuote = async (quoteId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce devis ? Cette action est irréversible.')) {
+      return;
+    }
+    
     try {
-      // Ajouter à la corbeille locale
-      const quote = quotes.find(q => q.id === quoteId);
-      if (quote) {
-        const trashItem = {
-          ...quote,
-          original_id: quoteId,
-          trashed_at: new Date().toISOString(),
-          auto_delete_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        };
-        setTrash(prev => [...prev, trashItem]);
-      }
-
-      // Mettre à jour le statut dans la base
-      await axios.put(`${API}/quotes/${quoteId}`, {
-        status: 'TRASHED'
-      }, {
+      await axios.delete(`${API}/quotes/${quoteId}`, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
 
-      alert('Devis déplacé vers la corbeille (récupérable sous 24h)');
+      alert('Devis supprimé avec succès');
       loadData();
     } catch (error) {
       console.error('Erreur suppression devis:', error);
       alert('Erreur lors de la suppression du devis');
+    }
+  };
+
+  const editQuote = (quote) => {
+    setEditingQuote(quote);
+    setIsEditMode(true);
+    setFormData({
+      client_id: quote.client_id,
+      title: quote.title,
+      description: quote.description,
+      amount: quote.amount,
+      status: quote.status || 'DRAFT',
+      items: quote.items || [{ name: '', quantity: 1, price: 0, total: 0 }]
+    });
+    setShowForm(true); // Ouvre le formulaire principal au lieu du modal
+    // Scroll vers le formulaire
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  };
+
+  const sendQuote = async (quote) => {
+    try {
+      // Mettre automatiquement le statut à SENT (filtrer les champs)
+      await axios.put(`${API}/quotes/${quote.id}`, {
+        client_id: quote.client_id,
+        title: quote.title,
+        description: quote.description,
+        amount: quote.amount,
+        status: 'SENT',
+        items: quote.items || []
+      }, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      alert(`✉️ Devis "${quote.title}" marqué comme envoyé !\n\n📧 Email automatique à venir...`);
+      loadData(); // Recharger les données
+    } catch (error) {
+      console.error('Erreur envoi devis:', error);
+      alert('Erreur lors de l\'envoi du devis');
     }
   };
 
@@ -7321,10 +7449,14 @@ const QuoteCreate = () => {
   };
 
   const addItem = () => {
+    const newIndex = formData.items.length;
     setFormData(prev => ({
       ...prev,
       items: [...prev.items, { name: '', quantity: 1, price: 0, total: 0 }]
     }));
+    // Initialiser les états d'autocomplétion pour le nouvel item
+    setItemSearchStates(prev => ({...prev, [newIndex]: ''}));
+    setShowItemSuggestions(prev => ({...prev, [newIndex]: false}));
   };
 
   const removeItem = (index) => {
@@ -7332,6 +7464,17 @@ const QuoteCreate = () => {
       ...prev,
       items: prev.items.filter((_, i) => i !== index)
     }));
+    // Nettoyer les états d'autocomplétion
+    setItemSearchStates(prev => {
+      const newStates = {...prev};
+      delete newStates[index];
+      return newStates;
+    });
+    setShowItemSuggestions(prev => {
+      const newStates = {...prev};
+      delete newStates[index];
+      return newStates;
+    });
   };
 
   const updateItem = (index, field, value) => {
@@ -7348,26 +7491,76 @@ const QuoteCreate = () => {
     setCreating(true);
 
     try {
-      await axios.post(`${API}/quotes`, {
-        ...formData,
-        amount: calculateTotal()
-      }, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
+      // Si un nom de client est saisi mais pas d'ID, créer le client d'abord
+      let clientId = formData.client_id;
+      
+      if (clientSearch && !formData.client_id) {
+        // Créer un nouveau client avec le nom saisi
+        const newClientData = {
+          nom: clientSearch,
+          email: '',
+          telephone: '',
+          adresse: '',
+          domaine: 'BTP'
+        };
+        
+        const clientResponse = await axios.post(`${API}/clients`, newClientData, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        
+        clientId = clientResponse.data.id;
+        
+        // Recharger la liste des clients
+        await loadData();
+      }
+      
+      // Préparer les données en filtrant uniquement les champs valides
+      const quoteData = {
+        client_id: clientId || null,
+        title: formData.title,
+        description: formData.description,
+        amount: calculateTotal(),
+        status: formData.status,
+        items: formData.items
+      };
 
-      alert('Devis créé avec succès !');
+      if (isEditMode && editingQuote) {
+        // Mode modification : PUT request
+        await axios.put(`${API}/quotes/${editingQuote.id}`, quoteData, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        alert('Devis modifié avec succès !');
+      } else {
+        // Mode création : POST request
+        await axios.post(`${API}/quotes`, quoteData, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        alert(clientSearch && !formData.client_id ? 
+          'Devis créé avec succès ! Le client a été ajouté automatiquement.' : 
+          'Devis créé avec succès !');
+      }
+
+      // Réinitialisation
       setFormData({
         client_id: '',
+        client_name: '',
         title: '',
         description: '',
         amount: '',
+        status: 'DRAFT',
         items: [{ name: '', quantity: 1, price: 0, total: 0 }]
       });
+      setClientSearch('');
+      setShowClientSuggestions(false);
+      setItemSearchStates({});
+      setShowItemSuggestions({});
       setShowForm(false);
+      setIsEditMode(false);
+      setEditingQuote(null);
       loadData();
     } catch (error) {
-      console.error('Erreur création devis:', error);
-      alert('Erreur lors de la création du devis');
+      console.error('Erreur:', error);
+      alert(isEditMode ? 'Erreur lors de la modification du devis' : 'Erreur lors de la création du devis');
     } finally {
       setCreating(false);
     }
@@ -7410,21 +7603,70 @@ const QuoteCreate = () => {
 
   const createTemplate = async () => {
     try {
-      const response = await axios.post(`${API}/quote-templates`, templateData, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      setTemplates(prev => [...prev, response.data]);
-      setTemplateData({
+      // Filtrer uniquement les champs valides pour éviter erreur 500
+      const templatePayload = {
+        name: templateFormData.name,
+        description: templateFormData.description,
+        items: templateFormData.items,
+        tags: [templateFormData.category] // Convertir category en tags
+      };
+
+      if (isEditingTemplate && editingTemplate) {
+        // Mode modification : PUT request
+        const response = await axios.put(`${API}/quote-templates/${editingTemplate.id}`, templatePayload, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        setTemplates(prev => prev.map(t => t.id === editingTemplate.id ? response.data : t));
+        alert('Template modifié avec succès !');
+      } else {
+        // Mode création : POST request
+        const response = await axios.post(`${API}/quote-templates`, templatePayload, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        setTemplates(prev => [...prev, response.data]);
+        alert('Template créé avec succès !');
+      }
+
+      // Réinitialisation
+      setTemplateFormData({
         name: '',
         description: '',
         category: 'standard',
         items: [{ name: '', description: '', unit_price: 0, default_quantity: 1 }]
       });
       setShowTemplateForm(false);
-      alert('Template créé avec succès !');
+      setIsEditingTemplate(false);
+      setEditingTemplate(null);
     } catch (error) {
-      console.error('Erreur création template:', error);
-      alert('Erreur lors de la création du template');
+      console.error('Erreur template:', error);
+      alert(isEditingTemplate ? 'Erreur lors de la modification du template' : 'Erreur lors de la création du template');
+    }
+  };
+
+  const editTemplate = (template) => {
+    setEditingTemplate(template);
+    setIsEditingTemplate(true);
+    setTemplateFormData({
+      name: template.name,
+      description: template.description || '',
+      category: (template.tags && template.tags[0]) || 'standard',
+      items: template.items || [{ name: '', description: '', unit_price: 0, default_quantity: 1 }]
+    });
+    setShowTemplateForm(true);
+  };
+
+  const deleteTemplate = async (templateId) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce template ?')) return;
+    
+    try {
+      await axios.delete(`${API}/quote-templates/${templateId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      setTemplates(prev => prev.filter(t => t.id !== templateId));
+      alert('Template supprimé avec succès !');
+    } catch (error) {
+      console.error('Erreur suppression template:', error);
+      alert('Erreur lors de la suppression du template');
     }
   };
 
@@ -7441,6 +7683,7 @@ const QuoteCreate = () => {
       title: template.name,
       description: template.description,
       amount: templateItems.reduce((sum, item) => sum + item.total, 0).toString(),
+      status: 'DRAFT',
       items: templateItems
     });
     
@@ -7449,30 +7692,15 @@ const QuoteCreate = () => {
     alert('Template appliqué ! Vous pouvez maintenant personnaliser le devis.');
   };
 
-  const deleteTemplate = async (templateId) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce template ?')) return;
-    
-    try {
-      await axios.delete(`${API}/quote-templates/${templateId}`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      setTemplates(prev => prev.filter(t => t.id !== templateId));
-      alert('Template supprimé avec succès !');
-    } catch (error) {
-      console.error('Erreur suppression template:', error);
-      alert('Erreur lors de la suppression du template');
-    }
-  };
-
   const addTemplateItem = () => {
-    setTemplateData(prev => ({
+    setTemplateFormData(prev => ({
       ...prev,
       items: [...prev.items, { name: '', description: '', unit_price: 0, default_quantity: 1 }]
     }));
   };
 
   const updateTemplateItem = (index, field, value) => {
-    setTemplateData(prev => ({
+    setTemplateFormData(prev => ({
       ...prev,
       items: prev.items.map((item, i) => 
         i === index ? { ...item, [field]: value } : item
@@ -7481,7 +7709,7 @@ const QuoteCreate = () => {
   };
 
   const removeTemplateItem = (index) => {
-    setTemplateData(prev => ({
+    setTemplateFormData(prev => ({
       ...prev,
       items: prev.items.filter((_, i) => i !== index)
     }));
@@ -7539,8 +7767,8 @@ const QuoteCreate = () => {
             </div>
           </div>
           
-          {/* Actions rapides */}
-          <div className="flex flex-wrap gap-3 mt-6">
+          {/* Actions rapides + Barre de recherche */}
+          <div className="flex flex-wrap gap-3 mt-6 items-center">
             <Button
               onClick={() => setShowForm(true)}
               className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border-0 rounded-2xl px-6 py-3 font-medium transition-all duration-200"
@@ -7555,6 +7783,20 @@ const QuoteCreate = () => {
               <UserPlus className="h-4 w-4 mr-2" />
               Nouveau Client
             </Button>
+            
+            {/* Barre de recherche */}
+            <div className="flex-1 min-w-[300px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Rechercher par titre, client, montant..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white/20 backdrop-blur-sm border border-white/30 rounded-2xl text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-white/50"
+                />
+              </div>
+            </div>
             <Button
               onClick={() => {
                 setShowTemplates(true);
@@ -7756,11 +7998,27 @@ const QuoteCreate = () => {
           <CardHeader className="pb-6">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-xl font-semibold text-gray-900">Créer un nouveau devis</CardTitle>
-                <p className="text-sm text-gray-500 mt-1">Tous les champs sont optionnels - remplissez seulement ce dont vous avez besoin</p>
+                <CardTitle className="text-xl font-semibold text-gray-900">
+                  {isEditMode ? 'Modifier le devis' : 'Créer un nouveau devis'}
+                </CardTitle>
+                <p className="text-sm text-gray-500 mt-1">
+                  {isEditMode ? 'Modifiez les informations du devis ci-dessous' : 'Tous les champs sont optionnels - remplissez seulement ce dont vous avez besoin'}
+                </p>
               </div>
               <Button
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  setIsEditMode(false);
+                  setEditingQuote(null);
+                  setFormData({
+                    client_id: '',
+                    title: '',
+                    description: '',
+                    amount: '',
+                    status: 'DRAFT',
+                    items: [{ name: '', quantity: 1, price: 0, total: 0 }]
+                  });
+                }}
                 variant="ghost"
                 size="sm"
                 className="text-gray-500 hover:text-gray-700"
@@ -7772,20 +8030,99 @@ const QuoteCreate = () => {
           <CardContent className="px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Client</label>
-                  <select
-                    value={formData.client_id}
-                    onChange={(e) => setFormData(prev => ({...prev, client_id: e.target.value}))}
-                    className="w-full rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200 p-3"
-                  >
-                    <option value="">Sélectionner un client (optionnel)</option>
-                    {clients.map(client => (
-                      <option key={client.id} value={client.id}>{client.nom}</option>
-                    ))}
-                  </select>
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Client
+                    <span className="text-xs text-gray-500 ml-2">(Saisissez un nom ou sélectionnez)</span>
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      value={clientSearch}
+                      onChange={handleClientSearchChange}
+                      onFocus={() => clientSearch && setShowClientSuggestions(true)}
+                      placeholder="Ex: Jean Dupont, ABC Entreprise..."
+                      className="rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500/20 pr-10"
+                    />
+                    {clientSearch && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setClientSearch('');
+                          setFormData(prev => ({...prev, client_id: '', client_name: ''}));
+                          setShowClientSuggestions(false);
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Suggestions d'autocomplétion */}
+                  {showClientSuggestions && filteredClients.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                      {filteredClients.map(client => (
+                        <button
+                          key={client.id}
+                          type="button"
+                          onClick={() => selectClient(client)}
+                          className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors border-b border-gray-100 last:border-b-0"
+                        >
+                          <div className="font-medium text-gray-900">{client.nom}</div>
+                          {client.email && (
+                            <div className="text-xs text-gray-500 mt-1">{client.email}</div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Message si client sélectionné depuis la base */}
+                  {formData.client_id && (
+                    <p className="text-xs text-green-600 mt-1 flex items-center">
+                      <Check className="h-3 w-3 mr-1" />
+                      Client trouvé dans votre base de données
+                    </p>
+                  )}
+                  
+                  {/* Message si client manuel */}
+                  {clientSearch && !formData.client_id && (
+                    <p className="text-xs text-blue-600 mt-1 flex items-center">
+                      <User className="h-3 w-3 mr-1" />
+                      Nouveau client - sera enregistré avec le devis
+                    </p>
+                  )}
                 </div>
                 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Statut du devis</label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) => setFormData(prev => ({...prev, status: e.target.value}))}
+                    className="w-full rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-200 p-3 font-medium cursor-pointer bg-white hover:border-purple-300"
+                    style={{
+                      backgroundColor: 
+                        formData.status === 'DRAFT' ? '#FEF3C7' :
+                        formData.status === 'SENT' ? '#DBEAFE' :
+                        formData.status === 'ACCEPTED' ? '#D1FAE5' :
+                        formData.status === 'REJECTED' ? '#FEE2E2' : '#FFFFFF',
+                      color: 
+                        formData.status === 'DRAFT' ? '#92400E' :
+                        formData.status === 'SENT' ? '#1E40AF' :
+                        formData.status === 'ACCEPTED' ? '#065F46' :
+                        formData.status === 'REJECTED' ? '#991B1B' : '#374151'
+                    }}
+                  >
+                    <option value="DRAFT" style={{backgroundColor: '#FEF3C7', color: '#92400E'}}>📋 Brouillon</option>
+                    <option value="SENT" style={{backgroundColor: '#DBEAFE', color: '#1E40AF'}}>✉️ Envoyé</option>
+                    <option value="ACCEPTED" style={{backgroundColor: '#D1FAE5', color: '#065F46'}}>✅ Accepté</option>
+                    <option value="REJECTED" style={{backgroundColor: '#FEE2E2', color: '#991B1B'}}>❌ Refusé</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Titre du devis</label>
                   <Input
@@ -7813,29 +8150,74 @@ const QuoteCreate = () => {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Articles / Prestations</label>
-                    <p className="text-xs text-gray-500 mt-1">Ajoutez les détails de vos prestations (optionnel)</p>
+                    <p className="text-xs text-gray-500 mt-1">Ajoutez les détails de vos prestations ou importez depuis le catalogue</p>
                   </div>
-                  <Button
-                    type="button"
-                    onClick={addItem}
-                    size="sm"
-                    className="bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Ajouter
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        alert('💡 Astuce: Allez dans Menu → Catalogue pour gérer vos produits.\n\nPuis revenez ici pour les importer dans vos devis.');
+                        window.open('/bureau/catalogue', '_blank');
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                    >
+                      <FileBarChart className="h-4 w-4 mr-1" />
+                      Catalogue
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={addItem}
+                      size="sm"
+                      className="bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Ajouter
+                    </Button>
+                  </div>
                 </div>
                 
                 <div className="space-y-3">
                   {formData.items.map((item, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-3 items-center">
-                      <div className="col-span-5">
+                    <div key={index} className="grid grid-cols-12 gap-3 items-center relative">
+                      <div className="col-span-5 relative">
                         <Input
                           value={item.name}
-                          onChange={(e) => updateItem(index, 'name', e.target.value)}
-                          placeholder="Nom de l'article (optionnel)"
-                          className="rounded-xl border-gray-200"
+                          onChange={(e) => handleItemNameChange(index, e.target.value)}
+                          onFocus={() => item.name && setShowItemSuggestions(prev => ({...prev, [index]: true}))}
+                          placeholder="Ex: Détection réseaux, Inspection..."
+                          className="rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
                         />
+                        
+                        {/* Suggestions du catalogue */}
+                        {showItemSuggestions[index] && getFilteredProducts(index).length > 0 && (
+                          <div className="absolute z-50 w-full mt-1 bg-white border rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                            {getFilteredProducts(index).map(product => (
+                              <button
+                                key={product.id}
+                                type="button"
+                                onClick={() => selectCatalogProduct(index, product)}
+                                className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors border-b last:border-0"
+                              >
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <div className="font-medium text-gray-900">{product.name}</div>
+                                    <div className="text-xs text-gray-500 mt-0.5">{product.unit}</div>
+                                  </div>
+                                  <div className="text-sm font-semibold text-purple-600">{product.price}€</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {item.name && !getFilteredProducts(index).length && showItemSuggestions[index] && (
+                          <p className="text-xs text-blue-600 mt-1 flex items-center">
+                            <Plus className="h-3 w-3 mr-1 inline" />
+                            Nouvel article personnalisé
+                          </p>
+                        )}
                       </div>
                       <div className="col-span-2">
                         <Input
@@ -7894,18 +8276,30 @@ const QuoteCreate = () => {
                   {creating ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Création...
+                      {isEditMode ? 'Modification...' : 'Création...'}
                     </>
                   ) : (
                     <>
-                      <FileText className="h-4 w-4 mr-2" />
-                      Créer le devis
+                      {isEditMode ? <Check className="h-4 w-4 mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+                      {isEditMode ? 'Enregistrer les modifications' : 'Créer le devis'}
                     </>
                   )}
                 </Button>
                 <Button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false);
+                    setIsEditMode(false);
+                    setEditingQuote(null);
+                    setFormData({
+                      client_id: '',
+                      title: '',
+                      description: '',
+                      amount: '',
+                      status: 'DRAFT',
+                      items: [{ name: '', quantity: 1, price: 0, total: 0 }]
+                    });
+                  }}
                   variant="outline"
                   className="rounded-2xl px-6"
                 >
@@ -7925,11 +8319,19 @@ const QuoteCreate = () => {
             
             {/* Colonne 1: Brouillons */}
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-lg">
-              <div className="p-4 border-b border-gray-100">
+              <div 
+                className="p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setExpandedColumn(expandedColumn === 'DRAFT' ? null : 'DRAFT')}
+              >
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900 flex items-center">
                     <div className="w-3 h-3 bg-orange-400 rounded-full mr-2"></div>
                     Brouillons
+                    {expandedColumn === 'DRAFT' ? (
+                      <ChevronUp className="h-4 w-4 ml-2 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 ml-2 text-gray-400" />
+                    )}
                   </h3>
                   <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                     {quotes.filter(q => q.status === 'DRAFT').length}
@@ -7937,9 +8339,28 @@ const QuoteCreate = () => {
                 </div>
               </div>
               <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
-                {quotes.filter(q => q.status === 'DRAFT').map((quote) => (
+                {quotes.filter(q => {
+                  if (q.status !== 'DRAFT') return false;
+                  if (!searchTerm) return true;
+                  const search = searchTerm.toLowerCase();
+                  return q.title.toLowerCase().includes(search) ||
+                         q.description?.toLowerCase().includes(search) ||
+                         q.client_name?.toLowerCase().includes(search) ||
+                         q.quote_number?.toLowerCase().includes(search) ||
+                         q.amount?.toString().includes(search);
+                }).map((quote) => (
                   <div key={quote.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
-                    <h4 className="font-semibold text-gray-900 mb-2 text-sm">{quote.title}</h4>
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900 text-sm">{quote.title}</h4>
+                      {quote.quote_number && (
+                        <span className="px-2 py-1 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 text-xs font-mono font-bold rounded-lg">
+                          #{quote.quote_number}
+                        </span>
+                      )}
+                    </div>
+                    {quote.client_name && (
+                      <p className="text-xs text-teal-600 mb-1">👤 {quote.client_name}</p>
+                    )}
                     <p className="text-xs text-gray-600 mb-3 line-clamp-2">{quote.description}</p>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-bold text-purple-600">{quote.amount}€</span>
@@ -7956,11 +8377,20 @@ const QuoteCreate = () => {
                       </Button>
                       <Button 
                         size="sm" 
+                        onClick={() => editQuote(quote)}
                         variant="outline"
                         className="rounded-lg text-xs px-3 py-1 h-7 border-gray-200"
                       >
                         <Edit className="h-3 w-3 mr-1" />
                         Éditer
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => deleteQuote(quote.id)}
+                        variant="outline"
+                        className="rounded-lg text-xs px-3 py-1 h-7 border-red-200 text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
@@ -7976,11 +8406,19 @@ const QuoteCreate = () => {
 
             {/* Colonne 2: Envoyés */}
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-lg">
-              <div className="p-4 border-b border-gray-100">
+              <div 
+                className="p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setExpandedColumn(expandedColumn === 'SENT' ? null : 'SENT')}
+              >
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900 flex items-center">
                     <div className="w-3 h-3 bg-blue-400 rounded-full mr-2"></div>
                     Envoyés
+                    {expandedColumn === 'SENT' ? (
+                      <ChevronUp className="h-4 w-4 ml-2 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 ml-2 text-gray-400" />
+                    )}
                   </h3>
                   <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                     {quotes.filter(q => q.status === 'SENT' || q.status === 'PENDING').length}
@@ -7988,31 +8426,68 @@ const QuoteCreate = () => {
                 </div>
               </div>
               <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
-                {quotes.filter(q => q.status === 'SENT' || q.status === 'PENDING').map((quote) => (
+                {quotes.filter(q => {
+                  if (q.status !== 'SENT' && q.status !== 'PENDING') return false;
+                  if (!searchTerm) return true;
+                  const search = searchTerm.toLowerCase();
+                  return q.title.toLowerCase().includes(search) ||
+                         q.description?.toLowerCase().includes(search) ||
+                         q.client_name?.toLowerCase().includes(search) ||
+                         q.quote_number?.toLowerCase().includes(search) ||
+                         q.amount?.toString().includes(search);
+                }).map((quote) => (
                   <div key={quote.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
-                    <h4 className="font-semibold text-gray-900 mb-2 text-sm">{quote.title}</h4>
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900 text-sm">{quote.title}</h4>
+                      {quote.quote_number && (
+                        <span className="px-2 py-1 bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-700 text-xs font-mono font-bold rounded-lg">
+                          #{quote.quote_number}
+                        </span>
+                      )}
+                    </div>
+                    {quote.client_name && (
+                      <p className="text-xs text-teal-600 mb-1">👤 {quote.client_name}</p>
+                    )}
                     <p className="text-xs text-gray-600 mb-3 line-clamp-2">{quote.description}</p>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-bold text-purple-600">{quote.amount}€</span>
                       <span className="text-xs text-gray-500">{new Date(quote.created_at).toLocaleDateString('fr-FR')}</span>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 mb-2">
                       <Button 
                         size="sm" 
-                        onClick={() => alert(`📊 SUIVI DEVIS: ${quote.title}\n\n✅ Statut: Envoyé\n📅 Date envoi: ${new Date(quote.created_at).toLocaleDateString('fr-FR')}\n💰 Montant: ${quote.amount}€\n🕐 En attente depuis: ${Math.floor((new Date() - new Date(quote.created_at)) / (1000 * 60 * 60 * 24))} jours\n\n📈 Actions recommandées:\n• Relance dans 2 jours\n• Ajuster prix si nécessaire`)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs px-3 py-1 h-7"
+                        onClick={() => acceptQuote(quote.id)}
+                        className="bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs px-3 py-1 h-7"
                       >
-                        <Eye className="h-3 w-3 mr-1" />
-                        Suivre
+                        <Check className="h-3 w-3 mr-1" />
+                        Accepter
                       </Button>
                       <Button 
                         size="sm" 
-                        onClick={() => alert(`📧 RELANCE AUTOMATIQUE\n\nDevis: ${quote.title}\nMontant: ${quote.amount}€\n\n✅ Email de relance envoyé !\n\n📋 Contenu:\n• Rappel des détails du devis\n• Incitation à l'action\n• Possibilité d'échange\n\nRéponse attendue sous 48h.`)}
+                        onClick={() => rejectQuote(quote.id)}
                         variant="outline"
-                        className="rounded-lg text-xs px-3 py-1 h-7 border-gray-200"
+                        className="rounded-lg text-xs px-3 py-1 h-7 border-red-200 text-red-600 hover:bg-red-50"
                       >
-                        <Mail className="h-3 w-3 mr-1" />
-                        Relancer
+                        <X className="h-3 w-3 mr-1" />
+                        Refuser
+                      </Button>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => editQuote(quote)}
+                        variant="outline"
+                        className="rounded-lg text-xs px-2 py-1 h-7 border-gray-200"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => deleteQuote(quote.id)}
+                        variant="outline"
+                        className="rounded-lg text-xs px-2 py-1 h-7 border-red-200 text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
@@ -8028,11 +8503,19 @@ const QuoteCreate = () => {
 
             {/* Colonne 3: Acceptés */}
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-lg">
-              <div className="p-4 border-b border-gray-100">
+              <div 
+                className="p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setExpandedColumn(expandedColumn === 'ACCEPTED' ? null : 'ACCEPTED')}
+              >
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900 flex items-center">
                     <div className="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
                     Acceptés
+                    {expandedColumn === 'ACCEPTED' ? (
+                      <ChevronUp className="h-4 w-4 ml-2 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 ml-2 text-gray-400" />
+                    )}
                   </h3>
                   <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                     {quotes.filter(q => q.status === 'ACCEPTED').length}
@@ -8040,18 +8523,37 @@ const QuoteCreate = () => {
                 </div>
               </div>
               <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
-                {quotes.filter(q => q.status === 'ACCEPTED').map((quote) => (
+                {quotes.filter(q => {
+                  if (q.status !== 'ACCEPTED') return false;
+                  if (!searchTerm) return true;
+                  const search = searchTerm.toLowerCase();
+                  return q.title.toLowerCase().includes(search) ||
+                         q.description?.toLowerCase().includes(search) ||
+                         q.client_name?.toLowerCase().includes(search) ||
+                         q.quote_number?.toLowerCase().includes(search) ||
+                         q.amount?.toString().includes(search);
+                }).map((quote) => (
                   <div key={quote.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
-                    <h4 className="font-semibold text-gray-900 mb-2 text-sm">{quote.title}</h4>
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900 text-sm">{quote.title}</h4>
+                      {quote.quote_number && (
+                        <span className="px-2 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 text-xs font-mono font-bold rounded-lg">
+                          #{quote.quote_number}
+                        </span>
+                      )}
+                    </div>
+                    {quote.client_name && (
+                      <p className="text-xs text-teal-600 mb-1">👤 {quote.client_name}</p>
+                    )}
                     <p className="text-xs text-gray-600 mb-3 line-clamp-2">{quote.description}</p>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-bold text-green-600">{quote.amount}€</span>
                       <span className="text-xs text-gray-500">{new Date(quote.created_at).toLocaleDateString('fr-FR')}</span>
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 mb-2">
                       <Button 
                         size="sm" 
-                        onClick={() => alert(`🏗️ CONVERSION EN CHANTIER\n\nDevis: ${quote.title}\nMontant: ${quote.amount}€\n\n✅ Chantier créé automatiquement !\n\n📋 Détails chantier:\n• Référence: CHT-${quote.id.substring(0,6).toUpperCase()}\n• Budget alloué: ${quote.amount}€\n• Statut: Planifié\n• Équipe assignée: En attente\n\n➡️ Redirection vers Planning...`)}
+                        onClick={() => alert(`🏗️ Conversion en chantier à venir`)}
                         className="bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs px-3 py-1 h-7"
                       >
                         <ArrowRight className="h-3 w-3 mr-1" />
@@ -8059,12 +8561,30 @@ const QuoteCreate = () => {
                       </Button>
                       <Button 
                         size="sm" 
-                        onClick={() => alert(`📄 GÉNÉRATION PDF DEVIS\n\nDevis: ${quote.title}\n\n✅ PDF généré avec succès !\n\n📋 Contenu:\n• En-tête professionnel\n• Détails client et projet\n• Devis détaillé: ${quote.amount}€\n• Conditions générales\n• Signature électronique\n\n💾 Téléchargement en cours...`)}
+                        onClick={() => alert(`📄 Génération PDF à venir`)}
                         variant="outline"
                         className="rounded-lg text-xs px-3 py-1 h-7 border-gray-200"
                       >
                         <FileText className="h-3 w-3 mr-1" />
                         PDF
+                      </Button>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => editQuote(quote)}
+                        variant="outline"
+                        className="rounded-lg text-xs px-2 py-1 h-7 border-gray-200"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => deleteQuote(quote.id)}
+                        variant="outline"
+                        className="rounded-lg text-xs px-2 py-1 h-7 border-red-200 text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
@@ -8080,11 +8600,19 @@ const QuoteCreate = () => {
 
             {/* Colonne 4: Convertis en Chantiers */}
             <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-lg">
-              <div className="p-4 border-b border-gray-100">
+              <div 
+                className="p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setExpandedColumn(expandedColumn === 'WORKSITE' ? null : 'WORKSITE')}
+              >
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900 flex items-center">
                     <div className="w-3 h-3 bg-purple-400 rounded-full mr-2"></div>
                     Chantiers
+                    {expandedColumn === 'WORKSITE' ? (
+                      <ChevronUp className="h-4 w-4 ml-2 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 ml-2 text-gray-400" />
+                    )}
                   </h3>
                   <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                     {quotes.filter(q => q.status === 'CONVERTED_TO_WORKSITE').length}
@@ -8094,7 +8622,14 @@ const QuoteCreate = () => {
               <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
                 {quotes.filter(q => q.status === 'CONVERTED_TO_WORKSITE').map((quote) => (
                   <div key={quote.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200 cursor-pointer">
-                    <h4 className="font-semibold text-gray-900 mb-2 text-sm">{quote.title}</h4>
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-gray-900 text-sm">{quote.title}</h4>
+                      {quote.quote_number && (
+                        <span className="px-2 py-1 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 text-xs font-mono font-bold rounded-lg">
+                          #{quote.quote_number}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-600 mb-3 line-clamp-2">{quote.description}</p>
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-sm font-bold text-purple-600">{quote.amount}€</span>
@@ -8130,6 +8665,228 @@ const QuoteCreate = () => {
               </div>
             </div>
           </div>
+
+          {/* Section déroulante détaillée selon la colonne sélectionnée */}
+          {expandedColumn && (
+            <div className="bg-gradient-to-br from-white via-purple-50/30 to-blue-50/30 backdrop-blur-xl rounded-3xl border-2 border-purple-100 shadow-2xl p-8 animate-in slide-in-from-top duration-300">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h3 className="text-3xl font-bold text-gray-900">
+                    {expandedColumn === 'DRAFT' && '📝 Détails Brouillons'}
+                    {expandedColumn === 'SENT' && '📧 Détails Envoyés'}
+                    {expandedColumn === 'ACCEPTED' && '✅ Détails Acceptés'}
+                    {expandedColumn === 'WORKSITE' && '🏗️ Détails Chantiers'}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {quotes.filter(q => {
+                      if (expandedColumn === 'DRAFT') return q.status === 'DRAFT';
+                      if (expandedColumn === 'SENT') return q.status === 'SENT' || q.status === 'PENDING';
+                      if (expandedColumn === 'ACCEPTED') return q.status === 'ACCEPTED';
+                      if (expandedColumn === 'WORKSITE') return q.status === 'CONVERTED_TO_WORKSITE';
+                      return false;
+                    }).length} devis • Cliquez sur un statut pour le modifier directement
+                  </p>
+                </div>
+                <Button
+                  onClick={() => setExpandedColumn(null)}
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-xl hover:bg-red-50 hover:text-red-600"
+                >
+                  <X className="h-6 w-6" />
+                </Button>
+              </div>
+
+              {/* Liste détaillée des devis de la colonne sélectionnée */}
+              <div className="space-y-6">
+                {quotes.filter(q => {
+                  if (expandedColumn === 'DRAFT') return q.status === 'DRAFT';
+                  if (expandedColumn === 'SENT') return q.status === 'SENT' || q.status === 'PENDING';
+                  if (expandedColumn === 'ACCEPTED') return q.status === 'ACCEPTED';
+                  if (expandedColumn === 'WORKSITE') return q.status === 'CONVERTED_TO_WORKSITE';
+                  return false;
+                }).map((quote) => (
+                  <div key={quote.id} className="bg-white rounded-2xl p-6 border-2 border-gray-100 hover:border-purple-300 hover:shadow-xl transition-all duration-200">
+                    {/* Header avec titre et statut */}
+                    <div className="flex items-start justify-between mb-4 pb-4 border-b border-gray-100">
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="text-xl font-bold text-gray-900">{quote.title || 'Devis sans titre'}</h4>
+                          {quote.quote_number && (
+                            <span className="px-3 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-mono font-bold rounded-xl shadow-lg">
+                              #{quote.quote_number}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          {quote.client_name && (
+                            <div className="flex items-center text-sm font-medium text-teal-700 bg-teal-50 px-3 py-1 rounded-lg">
+                              <Users className="h-4 w-4 mr-1.5" />
+                              {quote.client_name}
+                            </div>
+                          )}
+                          <div className="flex items-center text-xs text-gray-500">
+                            <Clock className="h-3.5 w-3.5 mr-1" />
+                            {new Date(quote.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Statut modifiable directement */}
+                      <div className="ml-4">
+                        <label className="block text-xs font-medium text-gray-500 mb-1">Statut</label>
+                        <select
+                          value={quote.status}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            try {
+                              await axios.put(`${API}/quotes/${quote.id}`, {
+                                client_id: quote.client_id,
+                                title: quote.title,
+                                description: quote.description,
+                                amount: quote.amount,
+                                status: newStatus,
+                                items: quote.items || []
+                              }, {
+                                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                              });
+                              loadData();
+                            } catch (error) {
+                              console.error('Erreur changement statut:', error);
+                              alert('Erreur lors du changement de statut');
+                            }
+                          }}
+                          className="text-sm font-medium px-4 py-2 rounded-xl border-2 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all cursor-pointer"
+                          style={{
+                            backgroundColor: quote.status === 'DRAFT' ? '#fef3c7' : 
+                                           quote.status === 'SENT' ? '#dbeafe' : 
+                                           quote.status === 'ACCEPTED' ? '#d1fae5' : '#fce7f3',
+                            color: quote.status === 'DRAFT' ? '#92400e' : 
+                                  quote.status === 'SENT' ? '#1e40af' : 
+                                  quote.status === 'ACCEPTED' ? '#065f46' : '#9f1239'
+                          }}
+                        >
+                          <option value="DRAFT">📋 Brouillon</option>
+                          <option value="SENT">✉️ Envoyé</option>
+                          <option value="ACCEPTED">✅ Accepté</option>
+                          <option value="REJECTED">❌ Refusé</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Colonne 1: Informations client et montant */}
+                      <div className="space-y-4">
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4">
+                          <div className="text-xs font-semibold text-purple-600 mb-1">MONTANT TOTAL</div>
+                          <div className="text-3xl font-bold text-purple-700">{quote.amount?.toFixed(2) || '0.00'}€</div>
+                        </div>
+                        
+                        {quote.client_email && (
+                          <div className="flex items-center text-sm text-gray-700 bg-gray-50 rounded-lg p-3">
+                            <Mail className="h-4 w-4 mr-2 text-blue-500" />
+                            <span className="truncate">{quote.client_email}</span>
+                          </div>
+                        )}
+                        {quote.client_phone && (
+                          <div className="flex items-center text-sm text-gray-700 bg-gray-50 rounded-lg p-3">
+                            <Phone className="h-4 w-4 mr-2 text-green-500" />
+                            {quote.client_phone}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Colonne 2: Description et Articles/Prestations */}
+                      <div className="space-y-4">
+                        {quote.description && (
+                          <div>
+                            <div className="text-xs font-semibold text-gray-500 mb-2">DESCRIPTION</div>
+                            <p className="text-sm text-gray-700 leading-relaxed">{quote.description}</p>
+                          </div>
+                        )}
+                        
+                        {quote.items && quote.items.length > 0 && (
+                          <div>
+                            <div className="text-xs font-semibold text-gray-500 mb-2">ARTICLES / PRESTATIONS</div>
+                            <div className="space-y-2">
+                              {quote.items.map((item, idx) => (
+                                <div key={idx} className="bg-blue-50 rounded-lg p-3 text-sm">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <div className="font-medium text-gray-900">{item.name || 'Article sans nom'}</div>
+                                      <div className="text-xs text-gray-600 mt-1">
+                                        Qté: {item.quantity} × {item.price?.toFixed(2)}€
+                                      </div>
+                                    </div>
+                                    <div className="font-bold text-blue-700 ml-2">
+                                      {((item.quantity || 0) * (item.price || 0)).toFixed(2)}€
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Colonne 3: Actions */}
+                      <div className="flex flex-col space-y-1.5">
+                        <Button
+                          onClick={() => editQuote(quote)}
+                          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg shadow-md px-3 py-1.5 text-sm"
+                          size="sm"
+                        >
+                          <Edit className="h-3.5 w-3.5 mr-1.5" />
+                          Modifier
+                        </Button>
+                        <Button
+                          onClick={() => sendQuote(quote)}
+                          className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-lg shadow-md px-3 py-1.5 text-sm"
+                          size="sm"
+                        >
+                          <Mail className="h-3.5 w-3.5 mr-1.5" />
+                          Envoyer
+                        </Button>
+                        <Button
+                          onClick={() => alert(`Générer PDF pour ${quote.title}`)}
+                          variant="outline"
+                          className="rounded-lg border-2 border-indigo-200 text-indigo-700 hover:bg-indigo-50 px-3 py-1.5 text-sm"
+                          size="sm"
+                        >
+                          <FileText className="h-3.5 w-3.5 mr-1.5" />
+                          PDF
+                        </Button>
+                        <Button
+                          onClick={() => deleteQuote(quote.id)}
+                          variant="outline"
+                          className="rounded-lg border-2 border-red-200 text-red-600 hover:bg-red-50 px-3 py-1.5 text-sm"
+                          size="sm"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                          Supprimer
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {quotes.filter(q => {
+                  if (expandedColumn === 'DRAFT') return q.status === 'DRAFT';
+                  if (expandedColumn === 'SENT') return q.status === 'SENT' || q.status === 'PENDING';
+                  if (expandedColumn === 'ACCEPTED') return q.status === 'ACCEPTED';
+                  if (expandedColumn === 'WORKSITE') return q.status === 'CONVERTED_TO_WORKSITE';
+                  return false;
+                }).length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400 mb-4">
+                      <FileText className="h-16 w-16 mx-auto" />
+                    </div>
+                    <p className="text-gray-500">Aucun devis dans cette catégorie</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Actions rapides en bas */}
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-3xl p-6">
@@ -8335,6 +9092,13 @@ const QuoteCreate = () => {
                           Utiliser
                         </Button>
                         <Button
+                          onClick={() => editTemplate(template)}
+                          variant="outline"
+                          className="px-3 py-2 border-blue-200 text-blue-600 hover:bg-blue-50 rounded-lg"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
                           onClick={() => deleteTemplate(template.id)}
                           variant="outline"
                           className="px-3 py-2 border-red-200 text-red-600 hover:bg-red-50 rounded-lg"
@@ -8374,8 +9138,12 @@ const QuoteCreate = () => {
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">Créer un Template</h2>
-                  <p className="text-gray-600">Définissez votre modèle de devis personnalisé</p>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {isEditingTemplate ? 'Modifier le Template' : 'Créer un Template'}
+                  </h2>
+                  <p className="text-gray-600">
+                    {isEditingTemplate ? 'Modifiez votre modèle de devis' : 'Définissez votre modèle de devis personnalisé'}
+                  </p>
                 </div>
                 <Button
                   onClick={() => setShowTemplateForm(false)}
@@ -8393,16 +9161,16 @@ const QuoteCreate = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Nom du Template</label>
                     <Input
                       placeholder="Ex: Devis Plomberie Standard"
-                      value={templateData.name}
-                      onChange={(e) => setTemplateData(prev => ({...prev, name: e.target.value}))}
+                      value={templateFormData.name}
+                      onChange={(e) => setTemplateFormData(prev => ({...prev, name: e.target.value}))}
                       className="rounded-xl border-gray-200"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Catégorie</label>
                     <select
-                      value={templateData.category}
-                      onChange={(e) => setTemplateData(prev => ({...prev, category: e.target.value}))}
+                      value={templateFormData.category}
+                      onChange={(e) => setTemplateFormData(prev => ({...prev, category: e.target.value}))}
                       className="w-full rounded-xl border border-gray-200 px-3 py-2"
                     >
                       <option value="standard">Standard</option>
@@ -8418,8 +9186,8 @@ const QuoteCreate = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                   <textarea
                     placeholder="Décrivez ce template et son utilisation..."
-                    value={templateData.description}
-                    onChange={(e) => setTemplateData(prev => ({...prev, description: e.target.value}))}
+                    value={templateFormData.description}
+                    onChange={(e) => setTemplateFormData(prev => ({...prev, description: e.target.value}))}
                     className="w-full rounded-xl border border-gray-200 px-3 py-2 h-20 resize-none"
                   />
                 </div>
@@ -8439,7 +9207,7 @@ const QuoteCreate = () => {
                   </div>
 
                   <div className="space-y-3">
-                    {templateData.items.map((item, index) => (
+                    {templateFormData.items.map((item, index) => (
                       <div key={index} className="bg-gray-50 rounded-lg p-4">
                         <div className="grid md:grid-cols-4 gap-3 items-end">
                           <div>
@@ -8495,10 +9263,36 @@ const QuoteCreate = () => {
                   </div>
                 </div>
 
+                {/* Total du template */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-4 mt-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 font-medium">Total estimé du template :</span>
+                    <span className="text-2xl font-bold text-purple-600">
+                      {templateFormData.items.reduce((sum, item) => 
+                        sum + ((item.unit_price || 0) * (item.default_quantity || 1)), 0
+                      ).toFixed(2)}€
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Basé sur {templateFormData.items.length} article{templateFormData.items.length > 1 ? 's' : ''} 
+                    {templateFormData.items.length > 0 && ` avec les quantités par défaut`}
+                  </p>
+                </div>
+
                 {/* Actions */}
                 <div className="flex justify-end space-x-3 pt-4 border-t">
                   <Button
-                    onClick={() => setShowTemplateForm(false)}
+                    onClick={() => {
+                      setShowTemplateForm(false);
+                      setIsEditingTemplate(false);
+                      setEditingTemplate(null);
+                      setTemplateFormData({
+                        name: '',
+                        description: '',
+                        category: 'standard',
+                        items: [{ name: '', description: '', unit_price: 0, default_quantity: 1 }]
+                      });
+                    }}
                     variant="outline"
                     className="rounded-xl px-6 py-2"
                   >
@@ -8508,7 +9302,7 @@ const QuoteCreate = () => {
                     onClick={createTemplate}
                     className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-6 py-2"
                   >
-                    Créer Template
+                    {isEditingTemplate ? 'Enregistrer Modifications' : 'Créer Template'}
                   </Button>
                 </div>
               </div>
@@ -9799,6 +10593,7 @@ const ClientsView = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     nom: '',
     email: '',
@@ -9828,8 +10623,10 @@ const ClientsView = () => {
     
     try {
       if (editingClient) {
-        // Update existing client (endpoint to be implemented)
-        console.log('Update client:', editingClient.id, formData);
+        // Update existing client
+        await axios.put(`${API}/clients/${editingClient.id}`, formData, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
       } else {
         await axios.post(`${API}/clients`, formData, {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -9862,6 +10659,23 @@ const ClientsView = () => {
     setShowForm(true);
   };
 
+  const deleteClient = async (clientId, clientName) => {
+    if (!window.confirm(`Êtes-vous sûr de vouloir supprimer le client "${clientName}" ?\n\nCette action est irréversible.`)) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/clients/${clientId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      alert('Client supprimé avec succès !');
+      loadClients();
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      alert('Erreur lors de la suppression du client');
+    }
+  };
+
   if (loading) {
     return (
       <Card className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-2xl">
@@ -9877,18 +10691,32 @@ const ClientsView = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-2xl p-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-semibold text-gray-900">Gestion Clients</h2>
             <p className="text-gray-600 mt-1">Base de données clients et historique des interventions</p>
           </div>
-          <Button
-            onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white rounded-2xl px-6 py-3 shadow-lg transform transition-all duration-200 hover:scale-105"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau Client
-          </Button>
+          <div className="flex space-x-3">
+            <Button
+              onClick={() => setShowForm(true)}
+              className="bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white rounded-2xl px-6 py-3 shadow-lg transform transition-all duration-200 hover:scale-105"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau Client
+            </Button>
+          </div>
+        </div>
+
+        {/* Barre de recherche */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Input
+            type="text"
+            placeholder="Rechercher un client (nom, email, téléphone)..."
+            className="pl-12 pr-4 py-3 rounded-2xl border-gray-200 focus:border-teal-500 focus:ring-teal-500/20 w-full"
+            value={searchTerm || ''}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
 
@@ -9993,7 +10821,17 @@ const ClientsView = () => {
             </CardContent>
           </Card>
         ) : (
-          clients.map((client) => (
+          clients
+            .filter(client => {
+              if (!searchTerm) return true;
+              const search = searchTerm.toLowerCase();
+              return (
+                client.nom?.toLowerCase().includes(search) ||
+                client.email?.toLowerCase().includes(search) ||
+                client.telephone?.toLowerCase().includes(search)
+              );
+            })
+            .map((client) => (
             <Card key={client.id} className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-lg hover:shadow-xl transition-all duration-300">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -10030,17 +10868,35 @@ const ClientsView = () => {
                     </div>
                   </div>
                   
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex space-x-2">
+                      <Button
+                        onClick={() => editClient(client)}
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl flex-1"
+                      >
+                        Modifier
+                      </Button>
+                      <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl flex-1">
+                        Historique
+                      </Button>
+                      <Button
+                        onClick={() => deleteClient(client.id, client.nom)}
+                        size="sm"
+                        variant="destructive"
+                        className="bg-red-600 hover:bg-red-700 text-white rounded-xl"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <Button
-                      onClick={() => editClient(client)}
                       size="sm"
                       variant="outline"
-                      className="rounded-xl"
+                      className="rounded-xl border-2 border-teal-500 text-teal-600 hover:bg-teal-50 w-full"
                     >
-                      Modifier
-                    </Button>
-                    <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl">
-                      Historique
+                      <FileText className="h-4 w-4 mr-2" />
+                      Créer un Devis
                     </Button>
                   </div>
                 </div>

@@ -1,41 +1,22 @@
-#!/usr/bin/env powershell
+# ========================================
+# SCRIPT DE REDEMARRAGE SKYAPP
+# ========================================
 
-<#
-  Redémarre SkyApp en arrêtant puis relançant backend + frontend
-#>
+Write-Host "`n========================================" -ForegroundColor Cyan
+Write-Host "  REDEMARRAGE DE SKYAPP" -ForegroundColor Cyan
+Write-Host "========================================`n" -ForegroundColor Cyan
 
-param(
-  [int]$BackendPort = 8001,
-  [int]$FrontendPort = 3002,
-  [switch]$OpenBrowser
-)
+$root = $PSScriptRoot
 
-$ErrorActionPreference = 'Stop'
+# Etape 1: Arreter
+Write-Host "[1/2] Arret des serveurs..." -ForegroundColor Yellow
+& "$root\stop_skyapp.ps1"
 
-Write-Host "🔄 Redémarrage de SkyApp..." -ForegroundColor Cyan
-Write-Host ""
-
-$root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$stop = Join-Path $root 'stop_skyapp.ps1'
-$start = Join-Path $root 'start_skyapp.ps1'
-
-if (-not (Test-Path $stop)) { throw "stop_skyapp.ps1 introuvable dans $root" }
-if (-not (Test-Path $start)) { throw "start_skyapp.ps1 introuvable dans $root" }
-
-Write-Host "📍 Étape 1/2 : Arrêt des serveurs..." -ForegroundColor Yellow
-Write-Host ""
-& powershell -NoProfile -ExecutionPolicy Bypass -File $stop -BackendPort $BackendPort -FrontendPort $FrontendPort
-
-Write-Host ""
-Write-Host "📍 Étape 2/2 : Démarrage des serveurs..." -ForegroundColor Yellow
-Write-Host ""
+# Attendre un peu
 Start-Sleep -Seconds 2
 
-# Construire proprement les arguments pour le start (les switchs doivent 
-# être passés sans valeur, uniquement s'ils sont présents)
-$startArgs = @('-BackendPort', $BackendPort, '-FrontendPort', $FrontendPort, '-KillExisting')
-if ($OpenBrowser) { $startArgs += '-OpenBrowser' }
+# Etape 2: Demarrer
+Write-Host "`n[2/2] Demarrage des serveurs..." -ForegroundColor Yellow
+& "$root\start_skyapp.ps1"
 
-& powershell -NoProfile -ExecutionPolicy Bypass -File $start @startArgs
-
-Write-Host "Redémarrage terminé." -ForegroundColor Green
+Write-Host "`nRedemarrage termine !`n" -ForegroundColor Green

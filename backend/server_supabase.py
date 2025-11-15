@@ -1248,15 +1248,15 @@ async def delete_search_photo(search_id: str, filename: str, user_data: dict = D
 # Routes pour les clients
 @api_router.get("/clients")
 async def get_clients(user_data: dict = Depends(get_user_from_token)):
-    """Récupérer la liste des clients"""
+    """Récupérer la liste des clients avec le nom de l'entreprise"""
     try:
         # Réservé aux administrateurs (menu Bureau)
         require_admin(user_data)
         company_id = await get_user_company(user_data)
         if company_id:
-            response = supabase_service.table("clients").select("*").eq("company_id", company_id).execute()
+            response = supabase_service.table("clients_with_company").select("*").eq("company_id", company_id).execute()
         else:
-            response = supabase_service.table("clients").select("*").execute()
+            response = supabase_service.table("clients_with_company").select("*").execute()
         return response.data
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des clients: {str(e)}")
@@ -1281,19 +1281,67 @@ async def create_client(client_data: ClientCreate, user_data: dict = Depends(get
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors de la création du client: {str(e)}")
 
+@api_router.put("/clients/{client_id}")
+async def update_client(client_id: str, client_data: ClientCreate, user_data: dict = Depends(get_user_from_token)):
+    """Modifier un client existant"""
+    try:
+        require_admin(user_data)
+        company_id = await get_user_company(user_data)
+        
+        updated_client = {
+            "nom": client_data.nom,
+            "email": client_data.email,
+            "telephone": client_data.telephone,
+            "adresse": client_data.adresse
+        }
+        
+        response = supabase_service.table("clients").update(updated_client).eq("id", client_id).eq("company_id", company_id).execute()
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Client non trouvé ou vous n'avez pas accès à ce client")
+        return response.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la modification du client: {str(e)}")
+
+@api_router.delete("/clients/{client_id}")
+async def delete_client(client_id: str, user_data: dict = Depends(get_user_from_token)):
+    """Supprimer un client"""
+    try:
+        require_admin(user_data)
+        company_id = await get_user_company(user_data)
+        
+        response = supabase_service.table("clients").delete().eq("id", client_id).eq("company_id", company_id).execute()
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Client non trouvé ou vous n'avez pas accès à ce client")
+        return {"message": "Client supprimé avec succès", "deleted_client": response.data[0]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression du client: {str(e)}")
+
 # Routes pour les devis (quotes)
 @api_router.get("/quotes")
 async def get_quotes(user_data: dict = Depends(get_user_from_token)):
-    """Récupérer la liste des devis"""
+    """Récupérer la liste des devis avec informations client"""
     try:
         company_id = await get_user_company(user_data)
         if company_id:
-            response = supabase_service.table("quotes").select("*").eq("company_id", company_id).execute()
+            # Utiliser la vue quotes_with_client_name pour avoir les infos client
+            response = supabase_service.table("quotes_with_client_name").select("*").eq("company_id", company_id).execute()
         else:
-            response = supabase_service.table("quotes").select("*").execute()
+            response = supabase_service.table("quotes_with_client_name").select("*").execute()
         return response.data or []
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des devis: {str(e)}")
+        # Fallback sur la table quotes si la vue n'existe pas encore
+        try:
+            if company_id:
+                response = supabase_service.table("quotes").select("*").eq("company_id", company_id).execute()
+            else:
+                response = supabase_service.table("quotes").select("*").execute()
+            return response.data or []
+        except:
+            raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des devis: {str(e)}")
 
 @api_router.post("/quotes")
 async def create_quote(quote_data: dict, user_data: dict = Depends(get_user_from_token)):
@@ -1303,16 +1351,162 @@ async def create_quote(quote_data: dict, user_data: dict = Depends(get_user_from
         if not company_id:
             raise HTTPException(status_code=400, detail="Vous devez appartenir à une entreprise")
         
+        # Log des données reçues
+        logger.info(f"Données reçues pour création de devis: {quote_data}")
+        
+        # Générer le numéro de devis automatiquement
+        quote_number_result = supabase_service.rpc('generate_quote_number', {'p_company_id': company_id}).execute()
+        quote_number = quote_number_result.data
+        
+        logger.info(f"Numéro de devis généré: {quote_number}")
+        
+        # Extraire les champs qui existent dans la table quotes + items en JSON
         new_quote = {
             "company_id": company_id,
-            "user_id": user_data["id"],
-            **quote_data
+            "client_id": quote_data.get("client_id"),
+            "quote_number": quote_number,
+            "title": quote_data.get("title"),
+            "description": quote_data.get("description", ""),
+            "amount": float(quote_data.get("amount", 0)),
+            "status": quote_data.get("status", "DRAFT"),
+            "items": quote_data.get("items", [])  # Stocker les items en JSON
         }
         
+        logger.info(f"Données préparées pour insertion: {new_quote}")
+        
         response = supabase_service.table("quotes").insert(new_quote).execute()
+        logger.info(f"Devis créé avec succès: {response.data[0]}")
         return response.data[0]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors de la création du devis: {str(e)}")
+
+@api_router.put("/quotes/{quote_id}")
+async def update_quote(quote_id: str, quote_data: dict, user_data: dict = Depends(get_user_from_token)):
+    """Modifier un devis existant"""
+    try:
+        company_id = await get_user_company(user_data)
+        if not company_id:
+            raise HTTPException(status_code=400, detail="Vous devez appartenir à une entreprise")
+        
+        # Vérifier que le devis appartient à la société (sécurité multi-tenant)
+        existing = supabase_service.table("quotes").select("*").eq("id", quote_id).eq("company_id", company_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Devis non trouvé ou accès refusé")
+        
+        # Filtrer les champs modifiables (exclure les champs calculés de la vue)
+        allowed_fields = ['client_id', 'title', 'description', 'amount', 'status', 'items']
+        update_data = {k: v for k, v in quote_data.items() if k in allowed_fields}
+        
+        # Mise à jour
+        response = supabase_service.table("quotes").update(update_data).eq("id", quote_id).execute()
+        return response.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la modification du devis: {str(e)}")
+
+@api_router.delete("/quotes/{quote_id}")
+async def delete_quote(quote_id: str, user_data: dict = Depends(get_user_from_token)):
+    """Supprimer un devis"""
+    try:
+        company_id = await get_user_company(user_data)
+        if not company_id:
+            raise HTTPException(status_code=400, detail="Vous devez appartenir à une entreprise")
+        
+        # Vérifier que le devis appartient à la société (sécurité multi-tenant)
+        existing = supabase_service.table("quotes").select("*").eq("id", quote_id).eq("company_id", company_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Devis non trouvé ou accès refusé")
+        
+        # Suppression
+        supabase_service.table("quotes").delete().eq("id", quote_id).execute()
+        return {"message": "Devis supprimé avec succès"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression du devis: {str(e)}")
+
+# Routes pour les templates de devis
+@api_router.get("/quote-templates")
+async def get_quote_templates(user_data: dict = Depends(get_user_from_token)):
+    """Récupérer les templates de devis de l'entreprise"""
+    try:
+        company_id = await get_user_company(user_data)
+        if not company_id:
+            raise HTTPException(status_code=400, detail="Vous devez appartenir à une entreprise")
+        
+        response = supabase_service.table("quote_templates").select("*").eq("company_id", company_id).order("created_at", desc=True).execute()
+        return response.data or []
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des templates: {str(e)}")
+
+@api_router.post("/quote-templates")
+async def create_quote_template(template_data: dict, user_data: dict = Depends(get_user_from_token)):
+    """Créer un nouveau template de devis"""
+    try:
+        company_id = await get_user_company(user_data)
+        if not company_id:
+            raise HTTPException(status_code=400, detail="Vous devez appartenir à une entreprise")
+        
+        new_template = {
+            "company_id": company_id,
+            "name": template_data.get("name"),
+            "description": template_data.get("description", ""),
+            "items": template_data.get("items", []),
+            "tags": template_data.get("tags", [])
+        }
+        
+        response = supabase_service.table("quote_templates").insert(new_template).execute()
+        return response.data[0]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la création du template: {str(e)}")
+
+@api_router.put("/quote-templates/{template_id}")
+async def update_quote_template(template_id: str, template_data: dict, user_data: dict = Depends(get_user_from_token)):
+    """Modifier un template de devis"""
+    try:
+        company_id = await get_user_company(user_data)
+        if not company_id:
+            raise HTTPException(status_code=400, detail="Vous devez appartenir à une entreprise")
+        
+        # Vérifier que le template appartient à l'entreprise
+        existing = supabase_service.table("quote_templates").select("*").eq("id", template_id).eq("company_id", company_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Template non trouvé")
+        
+        update_data = {
+            "name": template_data.get("name"),
+            "description": template_data.get("description", ""),
+            "items": template_data.get("items", []),
+            "tags": template_data.get("tags", [])
+        }
+        
+        response = supabase_service.table("quote_templates").update(update_data).eq("id", template_id).execute()
+        return response.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la modification du template: {str(e)}")
+
+@api_router.delete("/quote-templates/{template_id}")
+async def delete_quote_template(template_id: str, user_data: dict = Depends(get_user_from_token)):
+    """Supprimer un template de devis"""
+    try:
+        company_id = await get_user_company(user_data)
+        if not company_id:
+            raise HTTPException(status_code=400, detail="Vous devez appartenir à une entreprise")
+        
+        # Vérifier que le template appartient à l'entreprise
+        existing = supabase_service.table("quote_templates").select("*").eq("id", template_id).eq("company_id", company_id).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Template non trouvé")
+        
+        supabase_service.table("quote_templates").delete().eq("id", template_id).execute()
+        return {"message": "Template supprimé avec succès"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la suppression du template: {str(e)}")
 
 # Routes pour les invitations
 @api_router.post("/invitations/send")
