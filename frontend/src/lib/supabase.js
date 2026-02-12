@@ -4,7 +4,7 @@
 import { createClient } from '@supabase/supabase-js'
 import axios from 'axios'
 
-const API = process.env.REACT_APP_API_URL || 'http://localhost:8001/api'
+const API = process.env.REACT_APP_API_URL || process.env.REACT_APP_API_BASE_URL || `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001'}/api`
 
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY

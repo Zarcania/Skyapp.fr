@@ -93,7 +93,7 @@ import {
 // Backend URL and API base with safe fallbacks
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://127.0.0.1:8001';
 const API = process.env.REACT_APP_API_BASE_URL || `${BACKEND_URL}/api`;
-const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'https://izkhlqbhdxyjigdmjqvx.supabase.co';
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL || 'https://wursductnatclwrqvgua.supabase.co';
 
 const FOUNDER_EMAIL = (process.env.REACT_APP_FOUNDER_EMAIL || 'contact@skyapp.fr').toLowerCase();
 

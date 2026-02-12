@@ -42,7 +42,7 @@ services:
       # ⚠️ Remplacer par vos vrais domaines avant le déploiement
       # Format: https://domain1.com,https://domain2.com (sans espaces)
       - key: ALLOWED_ORIGINS
-        value: "https://skyapp.vercel.app"  # ⚠️ À MODIFIER avec votre URL Vercel finale
+        value: "https://skyapp.fr,https://www.skyapp.fr"  # Domaines de production
       
       # Optional: OpenAI Configuration (pour les fonctionnalités IA)
       - key: OPENAI_API_KEY

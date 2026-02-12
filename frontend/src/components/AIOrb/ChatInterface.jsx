@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './ChatInterface.css';
 
+const API = process.env.REACT_APP_API_BASE_URL || `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001'}/api`;
+
 const ChatInterface = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState([
     {
@@ -110,7 +112,7 @@ const ChatInterface = ({ isOpen, onClose }) => {
       // Appel à l'API IA
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        'http://localhost:8001/api/ai/query',
+        `${API}/ai/query`,
         { query: inputValue },
         {
           headers: {
