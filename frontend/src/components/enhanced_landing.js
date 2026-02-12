@@ -160,13 +160,15 @@ const EnhancedLandingPage = () => {
               <Button
                 variant="ghost"
                 onClick={() => setShowLoginModal(true)}
-                className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 transform hover:scale-105"
+                className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 transform hover:scale-105 notranslate"
+                translate="no"
               >
                 Connexion
               </Button>
               <Button
                 onClick={() => setShowRegisterModal(true)}
-                className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white shadow-xl shadow-blue-500/25 rounded-2xl transform hover:scale-105 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/40"
+                className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white shadow-xl shadow-blue-500/25 rounded-2xl transform hover:scale-105 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/40 notranslate"
+                translate="no"
               >
                 Inscription
               </Button>
@@ -290,18 +292,6 @@ const EnhancedLandingPage = () => {
                 <div className="relative flex items-center space-x-4">
                   <span>Commencer gratuitement</span>
                   <ArrowRight className="h-6 w-6 group-hover:translate-x-2 transition-transform duration-500" />
-                </div>
-              </button>
-              
-              <button 
-                onClick={() => setShowLoginModal(true)}
-                className="group relative text-gray-700 hover:text-blue-600 font-semibold text-xl px-12 py-6 rounded-3xl border-2 border-gray-200 hover:border-blue-300 bg-white/60 backdrop-blur-2xl hover:bg-white/90 transition-all duration-500 hover:shadow-2xl transform hover:scale-105"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-14 h-14 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center group-hover:from-blue-50 group-hover:to-blue-100 transition-all duration-500 group-hover:rotate-6">
-                    <Eye className="h-7 w-7 text-gray-600 group-hover:text-blue-600" />
-                  </div>
-                  <span>Voir la démo interactive</span>
                 </div>
               </button>
             </div>

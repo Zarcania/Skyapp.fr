@@ -31,7 +31,7 @@ Start-Sleep -Seconds 8
 $backendOK = $false
 for ($i = 0; $i -lt 10; $i++) {
     try {
-        $response = Invoke-WebRequest -Uri "http://127.0.0.1:8001/api/health" -TimeoutSec 2 -ErrorAction SilentlyContinue
+        $response = Invoke-WebRequest -Uri "http://127.0.0.1:8001/api/health" -TimeoutSec 2 -UseBasicParsing -ErrorAction SilentlyContinue
         if ($response.StatusCode -eq 200) {
             $backendOK = $true
             break

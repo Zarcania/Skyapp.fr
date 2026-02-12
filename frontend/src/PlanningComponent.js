@@ -1,3 +1,4 @@
+// Composant Planning Management - Version Mobile Optimisée
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
@@ -1134,53 +1135,55 @@ const PlanningManagement = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-2xl p-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Gestion du Planning</h2>
-            <p className="text-gray-600 mt-1">Équipes, collaborateurs et planification des chantiers</p>
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border-0 shadow-2xl p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 truncate">Gestion du Planning</h2>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">Équipes, collaborateurs et planification des chantiers</p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-2 sm:space-x-3 w-full sm:w-auto">
             <Button
               onClick={() => setShowTeamLeaderForm(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-4 py-2"
+              className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl sm:rounded-2xl px-3 py-2 text-sm flex-1 sm:flex-initial"
             >
-              <UserPlus className="h-4 w-4 mr-2" />
-              + Chef d'équipe
+              <UserPlus className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">+ Chef d'équipe</span>
+              <span className="sm:hidden">+ Chef</span>
             </Button>
             <Button
               onClick={() => setShowCollaboratorForm(true)}
-              className="bg-green-600 hover:bg-green-700 text-white rounded-2xl px-4 py-2"
+              className="bg-green-600 hover:bg-green-700 text-white rounded-xl sm:rounded-2xl px-3 py-2 text-sm flex-1 sm:flex-initial"
             >
-              <Users className="h-4 w-4 mr-2" />
-              + Collaborateur
+              <Users className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">+ Collaborateur</span>
+              <span className="sm:hidden">+ Collab.</span>
             </Button>
             <Button
               onClick={() => setShowScheduleForm(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white rounded-2xl px-4 py-2"
+              className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl sm:rounded-2xl px-3 py-2 text-sm flex-1 sm:flex-initial"
             >
-              <Calendar className="h-4 w-4 mr-2" />
+              <Calendar className="h-4 w-4 mr-1 sm:mr-2" />
               + Planning
             </Button>
           </div>
         </div>
 
         {/* Tabs améliorés avec badges et icônes */}
-        <div className="mt-6">
-          <div className="flex space-x-1 bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-1.5 shadow-inner border border-gray-200">
+        <div className="mt-4 sm:mt-6">
+          <div className="flex overflow-x-auto space-x-1 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl sm:rounded-2xl p-1.5 shadow-inner border border-gray-200 scrollbar-hide">
             <button
               onClick={() => setActiveTab('planning')}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
                 activeTab === 'planning' 
                   ? 'bg-white text-gray-900 shadow-lg transform scale-105' 
                   : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
               }`}
             >
-              <Calendar className="h-5 w-5" />
+              <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>Planning</span>
-              <span className={`ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              <span className={`ml-1 px-2 py-0.5 sm:px-2.5 rounded-full text-xs font-bold ${
                 activeTab === 'planning'
                   ? 'bg-purple-600 text-white'
                   : 'bg-gray-200 text-gray-600'
@@ -1190,15 +1193,15 @@ const PlanningManagement = () => {
             </button>
             <button
               onClick={() => setActiveTab('teams')}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
                 activeTab === 'teams' 
                   ? 'bg-white text-gray-900 shadow-lg transform scale-105' 
                   : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
               }`}
             >
-              <Users className="h-5 w-5" />
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>Équipes</span>
-              <span className={`ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              <span className={`ml-1 px-2 py-0.5 sm:px-2.5 rounded-full text-xs font-bold ${
                 activeTab === 'teams'
                   ? 'bg-blue-600 text-white'
                   : 'bg-gray-200 text-gray-600'
@@ -1208,15 +1211,16 @@ const PlanningManagement = () => {
             </button>
             <button
               onClick={() => setActiveTab('collaborators')}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
                 activeTab === 'collaborators' 
                   ? 'bg-white text-gray-900 shadow-lg transform scale-105' 
                   : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
               }`}
             >
-              <UserPlus className="h-5 w-5" />
-              <span>Collaborateurs</span>
-              <span className={`ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Collaborateurs</span>
+              <span className="sm:hidden">Collabs</span>
+              <span className={`ml-1 px-2 py-0.5 sm:px-2.5 rounded-full text-xs font-bold ${
                 activeTab === 'collaborators'
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-200 text-gray-600'
@@ -1226,15 +1230,16 @@ const PlanningManagement = () => {
             </button>
             <button
               onClick={() => setActiveTab('invited')}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-200 whitespace-nowrap text-sm sm:text-base ${
                 activeTab === 'invited' 
                   ? 'bg-white text-gray-900 shadow-lg transform scale-105' 
                   : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
               }`}
             >
-              <Mail className="h-5 w-5" />
-              <span>Personnes Invitées</span>
-              <span className={`ml-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+              <Mail className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden sm:inline">Personnes Invitées</span>
+              <span className="sm:hidden">Invités</span>
+              <span className={`ml-1 px-2 py-0.5 sm:px-2.5 rounded-full text-xs font-bold ${
                 activeTab === 'invited'
                   ? 'bg-orange-600 text-white'
                   : 'bg-gray-200 text-gray-600'
@@ -1248,63 +1253,65 @@ const PlanningManagement = () => {
 
       {/* Outils de Visualisation Temporelle - Visible uniquement dans l'onglet Planning */}
       {activeTab === 'planning' && (
-        <Card className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-lg">
-          <CardContent className="p-6">
+        <Card className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border-0 shadow-lg">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between space-y-4 lg:space-y-0">
               {/* Sélecteur de Vue amélioré */}
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center space-x-2">
-                  <CalendarRange className="h-5 w-5 text-purple-600" />
-                  <span>Visualisation du Planning</span>
+              <div className="w-full lg:w-auto">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 flex items-center space-x-2">
+                  <CalendarRange className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                  <span className="hidden sm:inline">Visualisation du Planning</span>
+                  <span className="sm:hidden">Planning</span>
                 </h3>
-                <div className="flex space-x-3">
+                <div className="flex space-x-2 sm:space-x-3">
                 <button
                   onClick={() => setViewMode('timeline')}
-                  className={`flex items-center space-x-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm ${
+                  className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-200 shadow-sm text-sm sm:text-base ${
                     viewMode === 'timeline' 
                       ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg transform scale-105' 
                       : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <Users className="h-5 w-5" />
-                  <span>Planning Équipe</span>
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden sm:inline">Planning Équipe</span>
+                  <span className="sm:hidden">Équipe</span>
                 </button>
                 <button
                   onClick={() => setViewMode('month')}
-                  className={`flex items-center space-x-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm ${
+                  className={`flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-5 py-2 sm:py-3 rounded-lg sm:rounded-xl font-semibold transition-all duration-200 shadow-sm text-sm sm:text-base ${
                     viewMode === 'month' 
                       ? 'bg-gradient-to-r from-gray-800 to-gray-900 text-white shadow-lg transform scale-105' 
                       : 'bg-white text-gray-600 hover:bg-gray-50 border-2 border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <CalendarRange className="h-5 w-5" />
+                  <CalendarRange className="h-4 w-4 sm:h-5 sm:w-5" />
                   <span>Mois</span>
                 </button>
               </div>
             </div>
 
             {/* Navigation Temporelle améliorée */}
-            <div className="flex items-center justify-between space-x-4">
-              <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-between space-x-2 sm:space-x-4 w-full">
+              <div className="flex items-center space-x-2 sm:space-x-3 flex-1">
                 {/* Bouton Précédent */}
                 <button
                   onClick={() => navigateDate(-1)}
-                  className="p-3 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-600 hover:text-purple-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+                  className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-600 hover:text-purple-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105 flex-shrink-0"
                 >
-                  <ChevronLeft className="h-5 w-5" />
+                  <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
                 
                 {/* Date actuelle avec style amélioré */}
-                <div className="px-6 py-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 shadow-sm">
-                  <span className="text-base font-bold text-gray-800">{getDateTitle()}</span>
+                <div className="px-3 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg sm:rounded-xl border-2 border-gray-200 shadow-sm flex-1 min-w-0">
+                  <span className="text-xs sm:text-base font-bold text-gray-800 truncate block">{getDateTitle()}</span>
                 </div>
                 
                 {/* Bouton Suivant */}
                 <button
                   onClick={() => navigateDate(1)}
-                  className="p-3 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-600 hover:text-purple-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+                  className="p-2 sm:p-3 rounded-lg sm:rounded-xl bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 text-purple-600 hover:text-purple-700 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105 flex-shrink-0"
                 >
-                  <ChevronRight className="h-5 w-5" />
+                  <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                 </button>
               </div>
               
@@ -1312,10 +1319,11 @@ const PlanningManagement = () => {
               <div className="flex items-center space-x-2">
                 <button 
                   onClick={() => setCurrentDate(new Date())}
-                  className="flex items-center space-x-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                  className="flex items-center space-x-1.5 sm:space-x-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105 text-sm sm:text-base whitespace-nowrap"
                 >
                   <CalendarDays className="h-4 w-4" />
-                  <span>Aujourd'hui</span>
+                  <span className="hidden sm:inline">Aujourd'hui</span>
+                  <span className="sm:hidden">Auj.</span>
                 </button>
               </div>
             </div>
@@ -1330,15 +1338,15 @@ const PlanningManagement = () => {
 
           {/* Vue Timeline Hebdomadaire - Par Technicien */}
           {viewMode === 'timeline' && (
-            <Card className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <Card className="bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
               <CardContent className="p-0">
                 {/* Grille Timeline */}
-                <div className="overflow-x-hidden">
-                  <div className="min-w-full">
+                <div className="overflow-x-auto">
+                  <div className="min-w-[900px]">
                     {/* En-tête avec dates */}
-                    <div className="grid grid-cols-[200px_repeat(7,1fr)] bg-gray-50 border-b-2 border-gray-200">
+                    <div className="grid grid-cols-[150px_repeat(7,1fr)] sm:grid-cols-[200px_repeat(7,1fr)] bg-gray-50 border-b-2 border-gray-200">
                       {/* Colonne Techniciens */}
-                      <div className="p-4 font-bold text-gray-700 border-r-2 border-gray-200 bg-white">
+                      <div className="p-2 sm:p-4 font-bold text-sm sm:text-base text-gray-700 border-r-2 border-gray-200 bg-white">
                         Techniciens
                       </div>
                       {/* Colonnes des jours */}
@@ -1352,7 +1360,7 @@ const PlanningManagement = () => {
                         return (
                           <div 
                             key={index}
-                            className={`p-3 text-center border-r border-gray-200 ${
+                            className={`p-2 sm:p-3 text-center border-r border-gray-200 ${
                               isToday 
                                 ? 'bg-blue-50 border-blue-300' 
                                 : isWeekend 
@@ -1365,7 +1373,7 @@ const PlanningManagement = () => {
                             }`}>
                               {dayName}
                             </div>
-                            <div className={`text-2xl font-bold mt-1 ${
+                            <div className={`text-xl sm:text-2xl font-bold mt-1 ${
                               isToday ? 'text-blue-700' : 'text-gray-800'
                             }`}>
                               {dayNum}
@@ -1469,13 +1477,13 @@ const PlanningManagement = () => {
                             return (
                               <div 
                                 key={leaderId}
-                                className={`grid grid-cols-[200px_repeat(7,1fr)] border-b-2 hover:bg-gray-50 transition-colors relative ${
+                                className={`grid grid-cols-[150px_repeat(7,1fr)] sm:grid-cols-[200px_repeat(7,1fr)] border-b-2 hover:bg-gray-50 transition-colors relative ${
                                   teamData.hasSchedules ? 'border-gray-400 bg-gray-50' : 'border-gray-200'
                                 }`}
                                 style={{ minHeight: `${100 + (teamData.members.length * 45)}px` }}
                               >
                                 {/* Colonne Équipe (Chef + Membres) */}
-                                <div className={`p-3 border-r-2 border-gray-200 ${colorScheme.bg} ${teamData.hasSchedules ? 'border-l-4 border-l-green-500' : ''}`}>
+                                <div className={`p-2 sm:p-3 border-r-2 border-gray-200 ${colorScheme.bg} ${teamData.hasSchedules ? 'border-l-4 border-l-green-500' : ''}`}>
                                   {/* Badge équipe active */}
                                   {teamData.hasSchedules && (
                                     <div className="mb-2 flex items-center justify-center">
@@ -1582,7 +1590,7 @@ const PlanningManagement = () => {
                                 </div>
 
                                 {/* Zone de contenu avec missions en blocs horizontaux étendus */}
-                                <div className={`absolute top-0 left-[200px] right-0 bottom-0 overflow-visible planning-team-container-${leaderId}`}>
+                                <div className={`absolute top-0 left-[150px] sm:left-[200px] right-0 bottom-0 overflow-visible planning-team-container-${leaderId}`}>
                                   {/* Grille de fond pour chaque jour */}
                                   <div className="grid grid-cols-7 gap-px bg-gray-200 absolute inset-0">
                                     {getWeekDates(currentDate).map((date, dayIndex) => (
@@ -1768,9 +1776,9 @@ const PlanningManagement = () => {
                                 return (
                                   <div 
                                     key={tech.id}
-                                    className="grid grid-cols-[200px_repeat(7,1fr)] border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                                    className="grid grid-cols-[150px_repeat(7,1fr)] sm:grid-cols-[200px_repeat(7,1fr)] border-b border-gray-200 hover:bg-gray-50 transition-colors"
                                   >
-                                    <div className="p-4 border-r-2 border-gray-200 bg-gray-50">
+                                    <div className="p-2 sm:p-4 border-r-2 border-gray-200 bg-gray-50">
                                       <div className="flex items-center space-x-3 relative group">
                                         <div className={`w-10 h-10 rounded-full ${colorScheme.bg} flex items-center justify-center ${colorScheme.text} font-bold text-sm`}>
                                           {(tech.first_name?.[0] || '') + (tech.last_name?.[0] || '')}
@@ -2350,49 +2358,49 @@ const PlanningManagement = () => {
             collaborators.map((collaborator) => {
               const teamLeader = teamLeaders.find(tl => tl.id === collaborator.team_leader_id);
               return (
-                <Card key={collaborator.id} className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4">
-                        <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
-                          <Users className="h-6 w-6 text-gray-600" />
+                <Card key={collaborator.id} className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                      <div className="flex items-start space-x-3 sm:space-x-4 min-w-0 flex-1">
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-xl flex-shrink-0 flex items-center justify-center">
+                          <Users className="h-5 w-5 sm:h-6 sm:w-6 text-gray-600" />
                         </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="text-xl font-bold text-gray-900">{collaborator.first_name} {collaborator.last_name}</h3>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h3 className="text-base sm:text-xl font-bold text-gray-900 truncate">{collaborator.first_name} {collaborator.last_name}</h3>
                             {collaborator.is_invited && (
                               <Badge className="bg-green-100 text-green-700 text-xs">
                                 ✓ Invité
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500 mb-3">🔧 {collaborator.role || 'TECHNICIEN'}</p>
-                          <div className="space-y-1 text-sm text-gray-600">
+                          <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">🔧 {collaborator.role || 'TECHNICIEN'}</p>
+                          <div className="space-y-1 text-xs sm:text-sm text-gray-600">
                             {collaborator.email && !collaborator.email.includes('@temp-skyapp.local') && (
-                              <p>📧 {collaborator.email}</p>
+                              <p className="truncate">📧 {collaborator.email}</p>
                             )}
                             <p>📱 {collaborator.phone || '-'}</p>
                           </div>
-                          <p className="text-xs text-gray-400 mt-3">Ajouté le {new Date(collaborator.created_at).toLocaleDateString('fr-FR')}</p>
+                          <p className="text-xs text-gray-400 mt-2 sm:mt-3">Ajouté le {new Date(collaborator.created_at).toLocaleDateString('fr-FR')}</p>
                         </div>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2 sm:flex-shrink-0 ml-13 sm:ml-0">
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="rounded-xl"
+                          className="rounded-xl text-xs sm:text-sm"
                           onClick={() => openEditCollaboratorModal(collaborator)}
                         >
-                          <Edit className="h-4 w-4 mr-1" />
+                          <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                           Modifier
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline"
                           onClick={() => removeCollaborator(collaborator.id)}
-                          className="rounded-xl border-red-200 text-red-600 hover:bg-red-50"
+                          className="rounded-xl border-red-200 text-red-600 hover:bg-red-50 text-xs sm:text-sm"
                         >
-                          <Trash2 className="h-4 w-4 mr-1" />
+                          <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1" />
                           Supprimer
                         </Button>
                       </div>
@@ -2418,51 +2426,51 @@ const PlanningManagement = () => {
             </Card>
           ) : (
             acceptedInvites.map((invitation) => (
-              <Card key={invitation.id} className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-xl flex items-center justify-center">
-                        <UserPlus className="h-6 w-6 text-green-600" />
+              <Card key={invitation.id} className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                    <div className="flex items-start space-x-3 sm:space-x-4 min-w-0 flex-1">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-100 to-blue-100 rounded-xl flex-shrink-0 flex items-center justify-center">
+                        <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                           {invitation.firstName} {invitation.lastName}
                         </h3>
-                        <p className="text-gray-600">Rôle: {invitation.role}</p>
-                        <div className="mt-2 space-y-1 text-sm text-gray-500">
-                          <p>📧 {invitation.email}</p>
+                        <p className="text-sm text-gray-600">Rôle: {invitation.role}</p>
+                        <div className="mt-2 space-y-1 text-xs sm:text-sm text-gray-500">
+                          <p className="truncate">📧 {invitation.email}</p>
                           {invitation.phone && <p>📱 {invitation.phone}</p>}
                           <p>🛠️ Compétences: {invitation.skills || 'Généraliste'}</p>
                           <p>✅ Accepté le: {new Date(invitation.accepted_at || invitation.createdAt).toLocaleDateString('fr-FR')}</p>
                         </div>
-                        <div className="mt-3 flex space-x-2">
+                        <div className="mt-3 flex flex-wrap gap-1.5 sm:space-x-2">
                           {invitation.usedAsTeamLeader && (
-                            <Badge className="bg-purple-100 text-purple-700">
-                              👑 Chef d'équipe assigné
+                            <Badge className="bg-purple-100 text-purple-700 text-xs">
+                              👑 Chef assigné
                             </Badge>
                           )}
                           {invitation.usedAsCollaborator && (
-                            <Badge className="bg-blue-100 text-blue-700">
-                              🤝 Collaborateur assigné
+                            <Badge className="bg-blue-100 text-blue-700 text-xs">
+                              🤝 Collab. assigné
                             </Badge>
                           )}
                           {!invitation.usedAsTeamLeader && !invitation.usedAsCollaborator && (
-                            <Badge className="bg-green-100 text-green-700">
-                              ✅ Disponible pour assignation
+                            <Badge className="bg-green-100 text-green-700 text-xs">
+                              ✅ Disponible
                             </Badge>
                           )}
                         </div>
                       </div>
                     </div>
-                    <div className="flex flex-col space-y-2">
+                    <div className="flex sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2 ml-13 sm:ml-0">
                       {!invitation.usedAsTeamLeader && (
                         <Button 
                           size="sm"
                           onClick={() => addInvitedPersonAsTeamLeader(invitation)}
                           className="bg-gray-800 hover:bg-black text-white rounded-xl text-xs px-3 py-2"
                         >
-                          👑 Chef d'équipe
+                          👑 Chef
                         </Button>
                       )}
                       {!invitation.usedAsCollaborator && (
@@ -2471,7 +2479,7 @@ const PlanningManagement = () => {
                           onClick={() => addInvitedPersonAsCollaborator(invitation)}
                           className="bg-gray-600 hover:bg-gray-700 text-white rounded-xl text-xs px-3 py-2"
                         >
-                          🤝 Collaborateur
+                          🤝 Collab.
                         </Button>
                       )}
                       {(invitation.usedAsTeamLeader || invitation.usedAsCollaborator) && (

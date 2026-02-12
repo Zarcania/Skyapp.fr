@@ -1010,11 +1010,11 @@ const LandingPage = () => {
         <div className="navigation-menu max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <div className="logo-container flex items-center">
+            <div className="logo-container flex items-center space-x-2">
               <img 
                 src="/logo.png" 
                 alt="SkyApp Logo" 
-                className="w-48 h-48 rounded-lg object-cover logo-neon-effect"
+                className="w-32 h-32 sm:w-32 sm:h-32 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-lg object-cover logo-neon-effect"
               />
             </div>
             
@@ -1040,15 +1040,6 @@ const LandingPage = () => {
                     </span>
                   </div>
                 </button>
-                {isAdmin && (
-                  <Button
-                    variant="outline"
-                    onClick={goToStatistics}
-                    className="border-2 border-gray-300 text-gray-800 hover:bg-gray-100 text-sm font-medium px-4 py-2 rounded-full transition-colors duration-200"
-                  >
-                    Statistiques
-                  </Button>
-                )}
                 <Button
                   onClick={goToDashboard}
                   className="bg-black hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors duration-200"
@@ -1065,39 +1056,57 @@ const LandingPage = () => {
               </div>
             ) : (
               // Original navigation for non-logged users
-              <div className="hidden md:flex items-center space-x-8">
-                {[
-                  { label: 'Fonctionnalités', id: 'features' },
-                  { label: 'À propos', id: 'apropos' },
-                  { label: 'Tarifs', id: 'tarifs' },
-                  { label: 'Contact', id: 'contact' }
-                ].map((item) => (
-                  <a
-                    key={item.label}
-                    href={`#${item.id}`}
-                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200"
+              <>
+                <div className="flex items-center space-x-2 md:space-x-8">
+                  <div className="hidden md:flex items-center space-x-8">
+                    {[
+                      { label: 'Fonctionnalités', id: 'features' },
+                      { label: 'À propos', id: 'apropos' },
+                      { label: 'Tarifs', id: 'tarifs' },
+                      { label: 'Contact', id: 'contact' }
+                    ].map((item) => (
+                      <a
+                        key={item.label}
+                        href={`#${item.id}`}
+                        className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                      >
+                        {item.label}
+                      </a>
+                    ))}
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowLoginModal(true)}
+                    className="border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white text-xs md:text-sm font-medium px-3 md:px-4 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105 notranslate"
+                    translate="no"
                   >
-                    {item.label}
-                  </a>
-                ))}
-                <Button
-                  variant="outline"
-                  onClick={() => setShowLoginModal(true)}
-                  className="border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white text-sm font-medium px-4 py-2 rounded-full transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
-                >
-                  Connexion
-                </Button>
-                <Button
-                  onClick={() => setShowRegisterModal(true)}
-                  className="bg-black hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-full transition-colors duration-200"
-                >
-                  Inscription
-                </Button>
-              </div>
+                    Connexion
+                  </Button>
+                  <Button
+                    onClick={() => setShowRegisterModal(true)}
+                    className="bg-black hover:bg-gray-800 text-white text-xs md:text-sm font-medium px-3 md:px-4 py-2 rounded-full transition-colors duration-200 notranslate"
+                    translate="no"
+                  >
+                    Inscription
+                  </Button>
+                </div>
+                
+                {/* Mobile menu button */}
+                <div className="md:hidden ml-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    className="p-2"
+                  >
+                    {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                  </Button>
+                </div>
+              </>
             )}
 
-            {/* Mobile menu button */}
-            <div className="md:hidden">
+            {/* Desktop menu hidden placeholder */}
+            <div className="hidden">
               <Button
                 variant="ghost"
                 size="sm"
@@ -1110,9 +1119,8 @@ const LandingPage = () => {
           </div>
 
           {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <div className="md:hidden border-t border-gray-200/50 bg-white/95 backdrop-blur-xl">
-              <div className="py-4 space-y-4">
+          <div className={`md:hidden border-t border-gray-200/50 bg-white/95 backdrop-blur-xl overflow-hidden transition-all duration-300 ease-in-out border-2 border-black ${mobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className="py-4 space-y-4">
                 {isLoggedIn ? (
                   <div className="space-y-3">
                     <div className="flex items-center space-x-3 px-4 py-2">
@@ -1126,15 +1134,6 @@ const LandingPage = () => {
                         <div className="text-xs text-gray-500">{user?.email}</div>
                       </div>
                     </div>
-                    {isAdmin && (
-                      <Button
-                        onClick={goToStatistics}
-                        variant="outline"
-                        className="w-full mx-4 text-gray-900 border-gray-300 hover:bg-gray-50 text-sm"
-                      >
-                        Statistiques
-                      </Button>
-                    )}
                     <Button
                       onClick={goToDashboard}
                       className="w-full mx-4 bg-black hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-full"
@@ -1165,46 +1164,30 @@ const LandingPage = () => {
                         {item.label}
                       </a>
                     ))}
-                    <div className="px-4 space-y-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowLoginModal(true)}
-                        className="w-full justify-center text-sm font-medium text-gray-900 border-gray-300 hover:bg-gray-50"
-                      >
-                        Connexion
-                      </Button>
-                      <Button
-                        onClick={() => setShowRegisterModal(true)}
-                        className="w-full bg-black hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-full"
-                      >
-                        Inscription
-                      </Button>
-                    </div>
                   </>
                 )}
               </div>
             </div>
-          )}
         </div>
       </nav>
 
       {/* Hero Section - Apple Style */}
-      <section className="hero-section pt-32 pb-20 bg-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <div className="space-y-8">
-            <div className="inline-flex items-center space-x-2 bg-gray-100 rounded-full px-4 py-2 text-sm font-medium text-gray-700">
+      <section className="hero-section min-h-screen flex flex-col justify-center bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <div className="space-y-6 md:space-y-8">
+            <div className="inline-flex items-center space-x-2 bg-gray-100 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-gray-700">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span className="hidden sm:inline">Nouveau : Solution complète de gestion d'entreprise</span>
               <span className="sm:hidden">Solution complète</span>
             </div>
             
-            <h1 className="futuristic-text text-4xl sm:text-5xl md:text-7xl font-bold text-gray-900 leading-tight tracking-tight">
+            <h1 className="futuristic-text text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 leading-tight tracking-tight">
               Gestion d'Entreprise
               <br />
               <span className="text-gray-600">Complète</span>
             </h1>
             
-            <p className="pricing-text text-lg sm:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
+            <p className="pricing-text text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed max-w-2xl mx-auto">
               La plateforme tout-en-un qui digitalise votre entreprise : gestion des équipes, planification, 
               recherches géolocalisées, rapports automatiques, devis, facturation et analytics avancés.
             </p>
@@ -1217,17 +1200,9 @@ const LandingPage = () => {
                 <span>Commencer gratuitement</span>
                 <ArrowRight className="h-5 w-5" />
               </button>
-              
-              <button 
-                onClick={() => setShowLoginModal(true)}
-                className="w-full sm:w-auto border border-gray-300 hover:border-gray-400 text-gray-700 font-medium text-lg px-8 py-4 rounded-full transition-colors duration-200 flex items-center justify-center space-x-2"
-              >
-                <Eye className="h-5 w-5" />
-                <span>Voir la démo</span>
-              </button>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm text-gray-500">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-8 text-xs sm:text-sm text-gray-500">
               <div className="flex items-center space-x-2">
                 <Check className="h-4 w-4 text-black flex-shrink-0" />
                 <span className="feature-text">Essai gratuit 14 jours</span>
@@ -1250,149 +1225,149 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section - Apple Style */}
-      <section id="features" className="py-20 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+      <section id="features" className="py-12 md:py-20 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Tout ce dont vous avez besoin
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto">
               Des fonctionnalités révolutionnaires pensées par et pour les professionnels du terrain
             </p>
           </div>
 
-          <div className="space-y-16">
-            {/* Feature 1: Recherche Terrain */}
-            <div className="flex flex-col lg:flex-row items-center gap-12">
+          <div className="space-y-12 md:space-y-16">
+            {/* Feature 1: Interface Technicien */}
+            <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-12">
               <div className="lg:w-1/2">
-                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
                   <img 
-                    src="/screenshots/recherche-terrain.jpg"
-                    alt="Interface Recherche Terrain - SkyApp"
+                    src="/Technicien menu.png"
+                    alt="Interface Technicien - SkyApp"
                     className="w-full h-auto object-cover"
                   />
                 </div>
               </div>
               <div className="lg:w-1/2">
-                <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-6">
-                  <Search className="h-6 w-6 text-gray-700" />
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-lg">
+                  <Search className="h-6 w-6 md:h-8 md:w-8 text-white" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">Recherche Terrain Intelligente</h3>
-                <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                  Interface modernisée avec informations générales, numéro de référence automatique et gestion de photo de profil. Sections modulaires avec photos intégrées pour une documentation complète.
+                <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4">Interface Technicien Mobile</h3>
+                <p className="text-base md:text-lg text-gray-600 leading-relaxed mb-4 md:mb-6">
+                  Menu intuitif optimisé pour les techniciens terrain. Accès rapide aux recherches, missions, planning et rapports. Interface tactile adaptée à tous les appareils mobiles avec navigation simplifiée.
                 </p>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Numéro de référence auto-généré</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Photo de profil optionnelle</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Sections personnalisables</li>
+                <ul className="space-y-2 md:space-y-3 text-sm md:text-base text-gray-700">
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Navigation simplifiée pour le terrain</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Accès rapide aux missions en cours</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Interface tactile optimisée</span></li>
                 </ul>
               </div>
             </div>
 
-            {/* Feature 2: Rapports Automatisés */}
-            <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
+            {/* Feature 2: Interface Bureau */}
+            <div className="flex flex-col lg:flex-row-reverse items-center gap-8 md:gap-12">
               <div className="lg:w-1/2">
-                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
                   <img 
-                    src="/screenshots/rapports-bureau.jpg"
-                    alt="Interface Rapports Automatisés - SkyApp"
+                    src="/Bureau Menu.png"
+                    alt="Interface Bureau - SkyApp"
                     className="w-full h-auto object-cover"
                   />
                 </div>
               </div>
               <div className="lg:w-1/2">
-                <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-6">
-                  <FileText className="h-6 w-6 text-gray-700" />
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-lg">
+                  <FileText className="h-6 w-6 md:h-8 md:w-8 text-white" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">Rapports Automatisés</h3>
-                <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                  Centre de rapports avec statistiques temps réel. Génération PDF automatique des recherches avec photos numérotées et mise en page professionnelle.
+                <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4">Centre de Gestion Bureau</h3>
+                <p className="text-base md:text-lg text-gray-600 leading-relaxed mb-4 md:mb-6">
+                  Interface administrative complète pour gérer toute votre activité. Tableau de bord centralisé avec accès aux recherches, devis, clients, planning et rapports. Statistiques globales et navigation rapide.
                 </p>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Statistiques en temps réel</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />PDF professionnel automatique</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Photos numérotées intégrées</li>
+                <ul className="space-y-2 md:space-y-3 text-sm md:text-base text-gray-700">
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Tableau de bord centralisé</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Statistiques d'activité globales</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Navigation intuitive entre modules</span></li>
                 </ul>
               </div>
             </div>
 
-            {/* Feature 3: Gestion des Devis */}
-            <div className="flex flex-col lg:flex-row items-center gap-12">
+            {/* Feature 3: Gestion Commerciale */}
+            <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-12">
               <div className="lg:w-1/2">
-                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
                   <img 
-                    src="/screenshots/gestion-devis.jpg"
-                    alt="Interface Gestion des Devis - SkyApp"
+                    src="/Centre gestion comerciale.png"
+                    alt="Centre de Gestion Commerciale - SkyApp"
                     className="w-full h-auto object-cover"
                   />
                 </div>
               </div>
               <div className="lg:w-1/2">
-                <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-6">
-                  <DollarSign className="h-6 w-6 text-gray-700" />
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-violet-500 rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-lg">
+                  <DollarSign className="h-6 w-6 md:h-8 md:w-8 text-white" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">Gestion Avancée des Devis</h3>
-                <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                  Interface complète pour gérer vos devis et chantiers. Workflow complet avec validation, modification, et conversion automatique vers les chantiers.
+                <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4">Centre de Gestion Commerciale</h3>
+                <p className="text-base md:text-lg text-gray-600 leading-relaxed mb-4 md:mb-6">
+                  Module complet pour la gestion commerciale : devis, clients, projets et chantiers. Suivez l'ensemble du cycle de vente depuis la prospection jusqu'à la réalisation. Génération automatique de documents et suivi d'activité.
                 </p>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Workflow complet Devis → Chantier</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Actions multiples (Accepter, Refuser, PDF)</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Gestion des statuts avancée</li>
+                <ul className="space-y-2 md:space-y-3 text-sm md:text-base text-gray-700">
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Gestion complète clients et projets</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Cycle devis → chantier automatisé</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Documents professionnels personnalisés</span></li>
                 </ul>
               </div>
             </div>
 
-            {/* Feature 4: Planning des Missions */}
-            <div className="flex flex-col lg:flex-row-reverse items-center gap-12">
+            {/* Feature 4: Planning Équipe */}
+            <div className="flex flex-col lg:flex-row-reverse items-center gap-8 md:gap-12">
               <div className="lg:w-1/2">
-                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
                   <img 
-                    src="/screenshots/planning-missions.jpg"
-                    alt="Interface Planning des Missions - SkyApp"
+                    src="/Planing équipe.png"
+                    alt="Planning d'Équipe - SkyApp"
                     className="w-full h-auto object-cover"
                   />
                 </div>
               </div>
               <div className="lg:w-1/2">
-                <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-6">
-                  <Calendar className="h-6 w-6 text-gray-700" />
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-lg">
+                  <Calendar className="h-6 w-6 md:h-8 md:w-8 text-white" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">Planning des Missions</h3>
-                <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                  Interface technicien dédiée au suivi des missions assignées. Tableau de bord avec statistiques, filtres avancés et vue détaillée de chaque intervention.
+                <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4">Planning d'Équipe Intelligent</h3>
+                <p className="text-base md:text-lg text-gray-600 leading-relaxed mb-4 md:mb-6">
+                  Organisez et visualisez le planning de vos équipes en temps réel. Assignation drag & drop, gestion des disponibilités, vue calendrier et liste. Synchronisation automatique avec les missions terrain et notifications.
                 </p>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Missions personnalisées par technicien</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Statistiques temps réel</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Filtres par date et statut</li>
+                <ul className="space-y-2 md:space-y-3 text-sm md:text-base text-gray-700">
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Vue calendrier et planning hebdomadaire</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Assignation rapide par drag & drop</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Gestion des disponibilités techniciens</span></li>
                 </ul>
               </div>
             </div>
 
-            {/* Feature 5: Tableau de Bord Analytique */}
-            <div className="flex flex-col lg:flex-row items-center gap-12">
+            {/* Feature 5: Analytics Avancées */}
+            <div className="flex flex-col lg:flex-row items-center gap-8 md:gap-12">
               <div className="lg:w-1/2">
-                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+                <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-500">
                   <img 
-                    src="/screenshots/tableau-bord.jpg"
-                    alt="Interface Tableau de Bord Analytique - SkyApp"
+                    src="/Analytics.png"
+                    alt="Analytics Avancées - SkyApp"
                     className="w-full h-auto object-cover"
                   />
                 </div>
               </div>
               <div className="lg:w-1/2">
-                <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl flex items-center justify-center mb-6">
-                  <BarChart3 className="h-6 w-6 text-gray-700" />
+                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center mb-4 md:mb-6 shadow-lg">
+                  <BarChart3 className="h-6 w-6 md:h-8 md:w-8 text-white" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-4">Tableau de Bord Analytique</h3>
-                <p className="text-lg text-gray-600 leading-relaxed mb-6">
-                  Analytics avancées avec métriques KPI, performance par région, activité temps réel et objectifs mensuels. Vision 360° de votre activité terrain.
+                <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 md:mb-4">Analytics & Statistiques Avancées</h3>
+                <p className="text-base md:text-lg text-gray-600 leading-relaxed mb-4 md:mb-6">
+                  Analysez votre performance avec des graphiques détaillés et KPI en temps réel. Évolution du chiffre d'affaires, nombre de projets, taux de conversion, répartition géographique. Prenez des décisions éclairées basées sur vos données.
                 </p>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Métriques KPI en temps réel</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Performance géographique</li>
-                  <li className="flex items-center"><Check className="h-5 w-5 text-green-500 mr-3" />Objectifs et barres de progression</li>
+                <ul className="space-y-2 md:space-y-3 text-sm md:text-base text-gray-700">
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Graphiques interactifs et KPI visuels</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Suivi CA et taux de conversion</span></li>
+                  <li className="flex items-center"><Check className="h-4 w-4 md:h-5 md:w-5 text-green-500 mr-2 md:mr-3 flex-shrink-0" /><span className="font-medium">Analyse géographique par région</span></li>
                 </ul>
               </div>
             </div>
@@ -1435,75 +1410,75 @@ const LandingPage = () => {
               </div>
             </div>
           )}
-          <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="mt-12 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             <div className="text-center">
               <RealTimeStatsDisplay 
                 stats={loading ? "..." : `${stats.total_users}`} 
-                className="text-3xl font-bold text-gray-900 mb-2" 
+                className="text-2xl md:text-3xl font-bold text-gray-900 mb-2" 
               />
-              <div className="text-sm text-gray-600">Utilisateurs actifs</div>
+              <div className="text-xs md:text-sm text-gray-600">Utilisateurs actifs</div>
             </div>
             <div className="text-center">
               <RealTimeStatsDisplay 
                 stats={loading ? "..." : `${Math.floor(stats.total_searches / 1000)}K+`} 
-                className="text-3xl font-bold text-gray-900 mb-2"
+                className="text-2xl md:text-3xl font-bold text-gray-900 mb-2"
                 showIndicator={false}
               />
-              <div className="text-sm text-gray-600">Recherches traitées</div>
+              <div className="text-xs md:text-sm text-gray-600">Recherches traitées</div>
             </div>
             <div className="text-center">
               <RealTimeStatsDisplay 
                 stats={loading ? "..." : stats.uptime} 
-                className="text-3xl font-bold text-gray-900 mb-2"
+                className="text-2xl md:text-3xl font-bold text-gray-900 mb-2"
                 showIndicator={false}
               />
-              <div className="text-sm text-gray-600">Temps de disponibilité</div>
+              <div className="text-xs md:text-sm text-gray-600">Temps de disponibilité</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-gray-900 mb-2">24/7</div>
-              <div className="text-sm text-gray-600">Support technique</div>
+              <div className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">24/7</div>
+              <div className="text-xs md:text-sm text-gray-600">Support technique</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* About Section - Apple Style */}
-      <section id="apropos" className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 futuristic-text">
+      <section id="apropos" className="py-12 md:py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 futuristic-text">
               À propos de SkyApp
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto pricing-text">
+            <p className="text-base md:text-lg lg:text-xl text-gray-600 max-w-3xl mx-auto pricing-text">
               Révolutionner le secteur BTP avec une technologie de pointe adaptée aux professionnels du terrain
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <h3 className="text-2xl font-semibold text-gray-900">Notre Histoire</h3>
-              <p className="text-gray-600 leading-relaxed">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+            <div className="space-y-4 md:space-y-6">
+              <h3 className="text-xl md:text-2xl font-semibold text-gray-900">Notre Histoire</h3>
+              <p className="text-sm md:text-base text-gray-600 leading-relaxed">
                 SkyApp a été créée en 2025 pour répondre aux défis technologiques du secteur BTP. 
                 Notre équipe d'ingénieurs et de professionnels du terrain développe des solutions 
                 innovantes qui simplifient la gestion des recherches de réseaux et la création de rapports.
               </p>
               
-              <h3 className="text-2xl font-semibold text-gray-900">Notre Mission</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <h3 className="text-xl md:text-2xl font-semibold text-gray-900">Notre Mission</h3>
+              <p className="text-sm md:text-base text-gray-600 leading-relaxed">
                 Digitaliser le travail terrain avec des outils intuitifs qui permettent aux techniciens 
                 de se concentrer sur leur expertise plutôt que sur la paperasse. Nous croyons en la 
                 puissance de la technologie au service de l'efficacité opérationnelle.
               </p>
 
-              <div className="grid grid-cols-2 gap-6 mt-8">
+              <div className="grid grid-cols-2 gap-4 md:gap-6 mt-6 md:mt-8">
                 <div className="text-center counter-container">
-                  <div className="text-3xl font-bold text-gray-900 counter-value" data-target="2025">0</div>
-                  <div className="text-sm text-gray-600">Année de création</div>
+                  <div className="text-2xl md:text-3xl font-bold text-gray-900 counter-value" data-target="2025">0</div>
+                  <div className="text-xs md:text-sm text-gray-600">Année de création</div>
                 </div>
                 {/* Real-time companies counter */}
                 <div className="text-center counter-container">
-                  <div className="text-3xl font-bold text-gray-900 counter-value" data-target="24">0</div>
-                  <div className="text-sm text-gray-600 flex items-center justify-center space-x-2">
+                  <div className="text-2xl md:text-3xl font-bold text-gray-900 counter-value" data-target="24">0</div>
+                  <div className="text-xs md:text-sm text-gray-600 flex items-center justify-center space-x-1 md:space-x-2">
                     <span>Sociétés créées sur SkyApp</span>
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -1514,35 +1489,35 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-2xl p-8">
-              <h3 className="text-2xl font-semibold text-gray-900 mb-6">Nos Valeurs</h3>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-3 value-item" style={{opacity: 0, transform: 'translateY(20px)'}}>
-                  <div className="w-2 h-2 bg-black rounded-full mt-2"></div>
+            <div className="bg-gray-50 rounded-2xl p-6 md:p-8">
+              <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-4 md:mb-6">Nos Valeurs</h3>
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex items-start space-x-2 md:space-x-3 value-item" style={{opacity: 0, transform: 'translateY(20px)'}}>
+                  <div className="w-2 h-2 bg-black rounded-full mt-1.5 md:mt-2 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Innovation Technologique</h4>
-                    <p className="text-sm text-gray-600">IA, géolocalisation GPS, génération PDF automatique</p>
+                    <h4 className="font-semibold text-sm md:text-base text-gray-900">Innovation Technologique</h4>
+                    <p className="text-xs md:text-sm text-gray-600">IA, géolocalisation GPS, génération PDF automatique</p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 value-item" style={{opacity: 0, transform: 'translateY(20px)'}}>
-                  <div className="w-2 h-2 bg-gray-700 rounded-full mt-2"></div>
+                <div className="flex items-start space-x-2 md:space-x-3 value-item" style={{opacity: 0, transform: 'translateY(20px)'}}>
+                  <div className="w-2 h-2 bg-gray-700 rounded-full mt-1.5 md:mt-2 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Ergonomie Terrain</h4>
-                    <p className="text-sm text-gray-600">Interface mobile optimisée, fonctionnement hors-ligne</p>
+                    <h4 className="font-semibold text-sm md:text-base text-gray-900">Ergonomie Terrain</h4>
+                    <p className="text-xs md:text-sm text-gray-600">Interface mobile optimisée, fonctionnement hors-ligne</p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 value-item" style={{opacity: 0, transform: 'translateY(20px)'}}>
-                  <div className="w-2 h-2 bg-gray-800 rounded-full mt-2"></div>
+                <div className="flex items-start space-x-2 md:space-x-3 value-item" style={{opacity: 0, transform: 'translateY(20px)'}}>
+                  <div className="w-2 h-2 bg-gray-800 rounded-full mt-1.5 md:mt-2 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Sécurité des Données</h4>
-                    <p className="text-sm text-gray-600">Chiffrement, sauvegarde cloud, conformité RGPD</p>
+                    <h4 className="font-semibold text-sm md:text-base text-gray-900">Sécurité des Données</h4>
+                    <p className="text-xs md:text-sm text-gray-600">Chiffrement, sauvegarde cloud, conformité RGPD</p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 value-item" style={{opacity: 0, transform: 'translateY(20px)'}}>
-                  <div className="w-2 h-2 bg-gray-900 rounded-full mt-2"></div>
+                <div className="flex items-start space-x-2 md:space-x-3 value-item" style={{opacity: 0, transform: 'translateY(20px)'}}>
+                  <div className="w-2 h-2 bg-gray-900 rounded-full mt-1.5 md:mt-2 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Support Réactif</h4>
-                    <p className="text-sm text-gray-600">Équipe technique dédiée, formation personnalisée</p>
+                    <h4 className="font-semibold text-sm md:text-base text-gray-900">Support Réactif</h4>
+                    <p className="text-xs md:text-sm text-gray-600">Équipe technique dédiée, formation personnalisée</p>
                   </div>
                 </div>
               </div>
@@ -1552,13 +1527,13 @@ const LandingPage = () => {
       </section>
 
       {/* Testimonials Section - Apple Style */}
-      <section id="testimonials" className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+      <section id="testimonials" className="py-12 md:py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
               Ils nous font confiance
             </h2>
-            <p className="text-xl text-gray-600">
+            <p className="text-base md:text-lg lg:text-xl text-gray-600">
               Plus de 1000 professionnels utilisent SkyApp au quotidien
             </p>
           </div>
@@ -1596,7 +1571,7 @@ const LandingPage = () => {
       </section>
 
       {/* Pricing Section - Animated Background */}
-      <section id="tarifs" className="py-20 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
+      <section id="tarifs" className="py-12 md:py-20 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden">
         {/* Animated Cursor Background */}
         <div className="absolute inset-0 pricing-bg-container">
           <div className="pricing-cursor-effect"></div>
@@ -1608,28 +1583,28 @@ const LandingPage = () => {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 futuristic-text">
               Tarifs
             </h2>
-            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto pricing-text">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto pricing-text">
               Des solutions adaptées à chaque besoin, avec un support technique inclus dans tous nos plans
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Plan Starter */}
-            <div className="pricing-card bg-white/90 backdrop-blur-sm rounded-3xl p-8 border-2 border-gray-200 relative overflow-hidden hover:border-gray-400 transition-all duration-300 hover:bg-white/95">
+            <div className="pricing-card bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-8 border-2 border-gray-200 relative overflow-hidden hover:border-gray-400 transition-all duration-300 hover:bg-white/95">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-600 to-gray-800"></div>
               
               <div className="text-center">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2 font-space-grotesk">Starter</h3>
-                <p className="text-gray-600 mb-6">Idéal pour les petites équipes</p>
-                <div className="mb-8">
-                  <span className="text-5xl font-bold text-gray-900 price-bounce">29€</span>
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2 font-space-grotesk">Starter</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">Idéal pour les petites équipes</p>
+                <div className="mb-6 md:mb-8">
+                  <span className="text-4xl md:text-5xl font-bold text-gray-900 price-bounce">29€</span>
                   <span className="text-gray-600 ml-1">/mois</span>
-                  <p className="text-sm text-gray-500 mt-2">Facturation mensuelle</p>
+                  <p className="text-xs md:text-sm text-gray-500 mt-2">Facturation mensuelle</p>
                 </div>
               </div>
               
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center text-gray-600 pricing-feature">
+              <ul className="space-y-3 md:space-y-4 mb-6 md:mb-8">
+                <li className="flex items-center text-sm md:text-base text-gray-600 pricing-feature">
                   <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center mr-3">
                     <Check className="h-3 w-3 text-white" />
                   </div>
@@ -1676,26 +1651,26 @@ const LandingPage = () => {
             </div>
 
             {/* Plan Professional - Recommandé */}
-            <div className="pricing-card bg-white/90 backdrop-blur-sm rounded-3xl p-8 border-2 border-black relative overflow-hidden transform scale-105 shadow-2xl hover:bg-white/95 mt-8">
+            <div className="pricing-card bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-8 border-2 border-black relative overflow-hidden lg:transform lg:scale-105 shadow-2xl hover:bg-white/95 lg:mt-0">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-black to-gray-700"></div>
-              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
-                <span className="bg-black text-white px-6 py-2 rounded-full text-sm font-medium shadow-xl">
+              <div className="absolute -top-5 md:-top-6 left-1/2 transform -translate-x-1/2">
+                <span className="bg-black text-white px-4 md:px-6 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium shadow-xl">
                   ⭐ Recommandé
                 </span>
               </div>
               
-              <div className="text-center mt-6">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2 font-space-grotesk">Professional</h3>
-                <p className="text-gray-600 mb-6">Pour les équipes en croissance</p>
-                <div className="mb-8">
-                  <span className="text-5xl font-bold text-black price-bounce">79€</span>
+              <div className="text-center mt-4 md:mt-6">
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2 font-space-grotesk">Professional</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">Équipes en croissance</p>
+                <div className="mb-6 md:mb-8">
+                  <span className="text-4xl md:text-5xl font-bold text-black price-bounce">79€</span>
                   <span className="text-gray-600 ml-1">/mois</span>
-                  <p className="text-sm text-gray-500 mt-2">Facturation annuelle : 790€</p>
+                  <p className="text-xs md:text-sm text-gray-500 mt-2">Facturation annuelle : 790€</p>
                 </div>
               </div>
               
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center text-gray-600 pricing-feature">
+              <ul className="space-y-3 md:space-y-4 mb-6 md:mb-8">
+                <li className="flex items-center text-sm md:text-base text-gray-600 pricing-feature">
                   <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center mr-3">
                     <Check className="h-3 w-3 text-white" />
                   </div>
@@ -1754,20 +1729,20 @@ const LandingPage = () => {
             </div>
 
             {/* Plan Enterprise */}
-            <div className="pricing-card bg-white/90 backdrop-blur-sm rounded-3xl p-8 border-2 border-gray-200 relative overflow-hidden hover:border-gray-400 transition-all duration-300 hover:bg-white/95">
+            <div className="pricing-card bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-8 border-2 border-gray-200 relative overflow-hidden hover:border-gray-400 transition-all duration-300 hover:bg-white/95">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-400 to-gray-600"></div>
               
               <div className="text-center">
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2 font-space-grotesk">Enterprise</h3>
-                <p className="text-gray-600 mb-6">Solutions sur mesure</p>
-                <div className="mb-8">
-                  <span className="text-3xl font-bold text-gray-900 price-bounce">Sur mesure</span>
-                  <p className="text-sm text-gray-500 mt-2">Devis personnalisé</p>
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-2 font-space-grotesk">Enterprise</h3>
+                <p className="text-sm md:text-base text-gray-600 mb-4 md:mb-6">Solutions sur mesure</p>
+                <div className="mb-6 md:mb-8">
+                  <span className="text-2xl md:text-3xl font-bold text-gray-900 price-bounce">Sur mesure</span>
+                  <p className="text-xs md:text-sm text-gray-500 mt-2">Devis personnalisé</p>
                 </div>
               </div>
               
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-center text-gray-600 pricing-feature">
+              <ul className="space-y-3 md:space-y-4 mb-6 md:mb-8">
+                <li className="flex items-center text-sm md:text-base text-gray-600 pricing-feature">
                   <div className="w-5 h-5 bg-black rounded-full flex items-center justify-center mr-3">
                     <Check className="h-3 w-3 text-white" />
                   </div>
@@ -1824,254 +1799,37 @@ const LandingPage = () => {
           </div>
 
           {/* FAQ */}
-          <div className="mt-20 text-center">
-            <h3 className="text-3xl font-semibold text-gray-900 mb-12 futuristic-text">Questions fréquentes</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              <div className="text-left bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 hover:border-gray-400 hover:shadow-lg hover:bg-white/90 transition-all duration-300">
-                <h4 className="font-semibold text-gray-900 mb-3 text-lg">Puis-je changer de plan ?</h4>
-                <p className="text-gray-600">Oui, vous pouvez upgrader ou downgrader votre plan à tout moment depuis votre tableau de bord.</p>
+          <div className="mt-16 md:mt-20 text-center">
+            <h3 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-8 md:mb-12 futuristic-text">Questions fréquentes</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
+              <div className="text-left bg-white/80 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-gray-200 hover:border-gray-400 hover:shadow-lg hover:bg-white/90 transition-all duration-300">
+                <h4 className="font-semibold text-gray-900 mb-2 md:mb-3 text-base md:text-lg">Puis-je changer de plan ?</h4>
+                <p className="text-sm md:text-base text-gray-600">Oui, vous pouvez upgrader ou downgrader votre plan à tout moment depuis votre tableau de bord.</p>
               </div>
-              <div className="text-left bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 hover:border-gray-400 hover:shadow-lg hover:bg-white/90 transition-all duration-300">
-                <h4 className="font-semibold text-gray-900 mb-3 text-lg">Y a-t-il des frais cachés ?</h4>
-                <p className="text-gray-600">Aucun frais caché. Tous nos tarifs sont transparents et affichés TTC.</p>
+              <div className="text-left bg-white/80 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-gray-200 hover:border-gray-400 hover:shadow-lg hover:bg-white/90 transition-all duration-300">
+                <h4 className="font-semibold text-gray-900 mb-2 md:mb-3 text-base md:text-lg">Y a-t-il des frais cachés ?</h4>
+                <p className="text-sm md:text-base text-gray-600">Aucun frais caché. Tous nos tarifs sont transparents et affichés TTC.</p>
               </div>
-              <div className="text-left bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 hover:border-gray-400 hover:shadow-lg hover:bg-white/90 transition-all duration-300">
-                <h4 className="font-semibold text-gray-900 mb-3 text-lg">Essai gratuit disponible ?</h4>
-                <p className="text-gray-600">Oui, 14 jours d'essai gratuit pour tous les plans, sans engagement ni carte bancaire.</p>
+              <div className="text-left bg-white/80 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-gray-200 hover:border-gray-400 hover:shadow-lg hover:bg-white/90 transition-all duration-300">
+                <h4 className="font-semibold text-gray-900 mb-2 md:mb-3 text-base md:text-lg">Essai gratuit disponible ?</h4>
+                <p className="text-sm md:text-base text-gray-600">Oui, 14 jours d'essai gratuit pour tous les plans, sans engagement ni carte bancaire.</p>
               </div>
-              <div className="text-left bg-white/80 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 hover:border-gray-400 hover:shadow-lg hover:bg-white/90 transition-all duration-300">
-                <h4 className="font-semibold text-gray-900 mb-3 text-lg">Support technique inclus ?</h4>
-                <p className="text-gray-600">Support 24/7 inclus dans tous nos plans, avec priorité pour les plans Professional et Enterprise.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Coming Soon Section - Enhanced with White Background */}
-      <section id="coming-soon" className="py-20 bg-white relative overflow-hidden border-t border-gray-200">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 futuristic-text">
-              <span className="bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                Coming Soon
-              </span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto pricing-text">
-              Version 2.0 - L'avenir de la gestion BTP piloté par l'Intelligence Artificielle
-            </p>
-          </div>
-
-          {/* Enhanced Animated Carousel */}
-          <div className="relative">
-            {/* Navigation Arrows */}
-            <button 
-              className="carousel-nav carousel-nav-left absolute left-0 top-1/2 transform -translate-y-1/2 z-20 rounded-full p-4"
-              onClick={() => {
-                const track = document.querySelector('.carousel-track');
-                if (track) {
-                  track.style.animationPlayState = 'paused';
-                  const currentTransform = getComputedStyle(track).transform;
-                  const matrix = new DOMMatrix(currentTransform);
-                  const currentX = matrix.m41;
-                  const newX = Math.min(currentX + 320, 0);
-                  track.style.transform = `translateX(${newX}px)`;
-                  setTimeout(() => {
-                    track.style.animationPlayState = 'running';
-                  }, 3000);
-                }
-              }}
-            >
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-
-            <button 
-              className="carousel-nav carousel-nav-right absolute right-0 top-1/2 transform -translate-y-1/2 z-20 rounded-full p-4"
-              onClick={() => {
-                const track = document.querySelector('.carousel-track');
-                if (track) {
-                  track.style.animationPlayState = 'paused';
-                  const currentTransform = getComputedStyle(track).transform;
-                  const matrix = new DOMMatrix(currentTransform);
-                  const currentX = matrix.m41;
-                  const newX = Math.max(currentX - 320, -1600);
-                  track.style.transform = `translateX(${newX}px)`;
-                  setTimeout(() => {
-                    track.style.animationPlayState = 'running';
-                  }, 3000);
-                }
-              }}
-            >
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-
-            <div className="carousel-container overflow-hidden">
-              <div className="carousel-track flex animate-carousel">
-                {/* Feature 1 */}
-                <div className="carousel-item flex-shrink-0 w-80 mx-4 p-1">
-                  <div className="carousel-card p-8 rounded-3xl h-full">
-                    <div className="text-center">
-                      <div className="feature-icon w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg className="w-10 h-10 text-black" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M7 4V2C7 1.45 7.45 1 8 1H12C12.55 1 13 1.45 13 2V4H16C16.55 4 17 4.45 17 5S16.55 6 16 6H15V17C15 18.1 14.1 19 13 19H7C5.9 19 5 18.1 5 17V6H4C3.45 6 3 5.55 3 5S3.45 4 4 4H7ZM9 8V15H11V8H9Z"/>
-                        </svg>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4 futuristic-text text-white">Commande Vocale</h3>
-                      <p className="text-gray-300 text-base leading-relaxed">
-                        "Créer un rapport pour le chantier Marseille" - L'IA comprend et exécute vos demandes vocales instantanément
-                      </p>
-                      <div className="mt-6 flex justify-center">
-                        <span className="px-4 py-2 bg-white/10 rounded-full text-xs font-medium text-white border border-white/20">
-                          Q2 2025
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Feature 2 */}
-                <div className="carousel-item flex-shrink-0 w-80 mx-4 p-1">
-                  <div className="carousel-card p-8 rounded-3xl h-full">
-                    <div className="text-center">
-                      <div className="feature-icon w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg className="w-10 h-10 text-black" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10 2L13.09 8.26L20 9L15 13.74L16.18 20.02L10 16.77L3.82 20.02L5 13.74L0 9L6.91 8.26L10 2Z"/>
-                        </svg>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4 futuristic-text text-white">Assistant IA Personnel</h3>
-                      <p className="text-gray-300 text-base leading-relaxed">
-                        Votre assistant intelligent qui apprend de vos habitudes et automatise vos tâches répétitives terrain
-                      </p>
-                      <div className="mt-6 flex justify-center">
-                        <span className="px-4 py-2 bg-white/10 rounded-full text-xs font-medium text-white border border-white/20">
-                          En développement
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Feature 3 */}
-                <div className="carousel-item flex-shrink-0 w-80 mx-4 p-1">
-                  <div className="carousel-card p-8 rounded-3xl h-full">
-                    <div className="text-center">
-                      <div className="feature-icon w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg className="w-10 h-10 text-black" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 12L11 14L15 10M21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12Z"/>
-                        </svg>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4 futuristic-text text-white">Prédiction Intelligente</h3>
-                      <p className="text-gray-300 text-base leading-relaxed">
-                        L'IA prédit vos besoins, suggère des optimisations et anticipe les problèmes avant qu'ils surviennent
-                      </p>
-                      <div className="mt-6 flex justify-center">
-                        <span className="px-4 py-2 bg-white/10 rounded-full text-xs font-medium text-white border border-white/20">
-                          Prototype
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Feature 4 */}
-                <div className="carousel-item flex-shrink-0 w-80 mx-4 p-1">
-                  <div className="carousel-card p-8 rounded-3xl h-full">
-                    <div className="text-center">
-                      <div className="feature-icon w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg className="w-10 h-10 text-black" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M12 2L15.09 8.26L22 9L17 13.74L18.18 20.02L12 16.77L5.82 20.02L7 13.74L2 9L8.91 8.26L12 2Z"/>
-                        </svg>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4 futuristic-text text-white">Automatisation Complète</h3>
-                      <p className="text-gray-300 text-base leading-relaxed">
-                        De la planification à la facturation, l'IA gère automatiquement tous vos processus métier
-                      </p>
-                      <div className="mt-6 flex justify-center">
-                        <span className="px-4 py-2 bg-white/10 rounded-full text-xs font-medium text-white border border-white/20">
-                          Bêta
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Feature 5 */}
-                <div className="carousel-item flex-shrink-0 w-80 mx-4 p-1">
-                  <div className="carousel-card p-8 rounded-3xl h-full">
-                    <div className="text-center">
-                      <div className="feature-icon w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg className="w-10 h-10 text-black" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-                        </svg>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4 futuristic-text text-white">Analytics Prédictifs</h3>
-                      <p className="text-gray-300 text-base leading-relaxed">
-                        Tableaux de bord intelligents avec prédictions de performance et recommandations stratégiques
-                      </p>
-                      <div className="mt-6 flex justify-center">
-                        <span className="px-4 py-2 bg-white/10 rounded-full text-xs font-medium text-white border border-white/20">
-                          Conception
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Repeat items for seamless loop */}
-                <div className="carousel-item flex-shrink-0 w-80 mx-4 p-1">
-                  <div className="carousel-card p-8 rounded-3xl h-full">
-                    <div className="text-center">
-                      <div className="feature-icon w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg className="w-10 h-10 text-black" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M7 4V2C7 1.45 7.45 1 8 1H12C12.55 1 13 1.45 13 2V4H16C16.55 4 17 4.45 17 5S16.55 6 16 6H15V17C15 18.1 14.1 19 13 19H7C5.9 19 5 18.1 5 17V6H4C3.45 6 3 5.55 3 5S3.45 4 4 4H7ZM9 8V15H11V8H9Z"/>
-                        </svg>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4 futuristic-text text-white">Commande Vocale</h3>
-                      <p className="text-gray-300 text-base leading-relaxed">
-                        "Créer un rapport pour le chantier Marseille" - L'IA comprend et exécute vos demandes vocales instantanément
-                      </p>
-                      <div className="mt-6 flex justify-center">
-                        <span className="px-4 py-2 bg-white/10 rounded-full text-xs font-medium text-white border border-white/20">
-                          Q2 2025
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Enhanced timeline indicator */}
-            <div className="text-center mt-16">
-              <div className="timeline-indicator inline-flex items-center space-x-3 px-8 py-4 rounded-full">
-                <div className="timeline-dot w-4 h-4 rounded-full animate-pulse"></div>
-                <span className="text-white font-semibold text-lg futuristic-text">Version 2.0 prévue - Q2 2025</span>
-                <div className="w-12 h-1 bg-gradient-to-r from-transparent via-white to-transparent rounded-full opacity-60"></div>
+              <div className="text-left bg-white/80 backdrop-blur-sm p-5 md:p-6 rounded-2xl border border-gray-200 hover:border-gray-400 hover:shadow-lg hover:bg-white/90 transition-all duration-300">
+                <h4 className="font-semibold text-gray-900 mb-2 md:mb-3 text-base md:text-lg">Support technique inclus ?</h4>
+                <p className="text-sm md:text-base text-gray-600">Support 24/7 inclus dans tous nos plans, avec priorité pour les plans Professional et Enterprise.</p>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Enhanced background pattern */}
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '60px 60px'
-          }}></div>
         </div>
       </section>
 
       {/* CTA Section - Apple Style */}
-      <section id="cta" className="py-20 bg-gray-900">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+      <section id="cta" className="py-12 md:py-20 bg-gray-900">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 md:mb-6">
             Prêt à révolutionner votre terrain ?
           </h2>
-          <p className="text-xl text-gray-300 mb-10">
+          <p className="text-base md:text-lg lg:text-xl text-gray-300 mb-8 md:mb-10">
             Rejoignez plus de 1000 professionnels qui ont déjà transformé leur façon de travailler
           </p>
           
@@ -2082,16 +1840,9 @@ const LandingPage = () => {
             >
               Commencer maintenant
             </button>
-            
-            <button
-              onClick={() => setShowLoginModal(true)}
-              className="border border-gray-600 hover:border-gray-500 text-white font-medium text-lg px-8 py-4 rounded-full transition-colors duration-200"
-            >
-              Voir la démo
-            </button>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-400 mt-8">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-xs md:text-sm text-gray-400 mt-6 md:mt-8">
             <div className="flex items-center space-x-2">
               <Check className="h-4 w-4" />
               <span>14 jours gratuits</span>
@@ -2108,253 +1859,39 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Enhanced Contact Section - Modern Design */}
-      <section id="contact" className="py-20 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20"></div>
-          <div className="grid grid-cols-8 gap-4 rotate-12 scale-150">
-            {[...Array(64)].map((_, i) => (
-              <div key={i} className="w-1 h-1 bg-white rounded-full animate-pulse" style={{animationDelay: `${i * 100}ms`}}></div>
-            ))}
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-500/20 border border-blue-500/30 mb-6">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 animate-pulse"></div>
-              <span className="text-blue-300 text-sm font-medium">Contactez nos experts</span>
-            </div>
-            
-            <h2 className="text-5xl md:text-7xl font-bold mb-6 futuristic-text">
-              <span className="bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent">
-                Transformons votre 
-              </span>
-              <br />
-              <span className="text-white">
-                vision ensemble
-              </span>
-            </h2>
-            
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              Notre équipe d'experts vous accompagne dans la digitalisation de votre entreprise BTP. 
-              Discutons de vos défis et trouvons les solutions adaptées.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 xl:grid-cols-5 gap-12">
-            {/* Contact Info Cards */}
-            <div className="xl:col-span-2 space-y-6">
-              {/* Quick Contact Card */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                    <Phone className="h-7 w-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold">Appel direct</h3>
-                    <p className="text-gray-300">Réponse immédiate</p>
-                  </div>
-                </div>
-                <a href="tel:+33123456789" className="text-2xl font-bold text-white hover:text-blue-300 transition-colors">
-                  +33 1 23 45 67 89
-                </a>
-                <p className="text-sm text-gray-400 mt-2">Lun-Ven 9h-18h</p>
+      {/* Contact Section - Simple */}
+      <section id="contact" className="py-20 md:py-32 bg-gray-900 text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            Contactez-nous
+          </h2>
+          <p className="text-xl md:text-2xl text-gray-300 mb-16">
+            Notre équipe est à votre écoute
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mx-auto">
+            {/* Phone */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:bg-white/10 transition-all">
+              <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Phone className="h-8 w-8 text-white" />
               </div>
+              <h3 className="text-xl font-semibold mb-3">Téléphone</h3>
+              <a href="tel:+33123456789" className="text-2xl font-bold text-blue-400 hover:text-blue-300 transition-colors">
+                +33 1 23 45 67 89
+              </a>
+              <p className="text-gray-400 text-sm mt-3">Lun-Ven 9h-18h</p>
+            </div>
 
-              {/* Email Card */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-14 h-14 bg-gradient-to-r from-green-500 to-teal-600 rounded-2xl flex items-center justify-center">
-                    <Mail className="h-7 w-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold">Email pro</h3>
-                    <p className="text-gray-300">Réponse sous 2h</p>
-                  </div>
-                </div>
-                <a href="mailto:contact@skyapp.fr" className="text-xl font-semibold text-white hover:text-green-300 transition-colors">
-                  contact@skyapp.fr
-                </a>
-                <p className="text-sm text-gray-400 mt-2">Support technique inclus</p>
+            {/* Email */}
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:bg-white/10 transition-all">
+              <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Mail className="h-8 w-8 text-white" />
               </div>
-
-              {/* Office Card */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-3xl p-8 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-14 h-14 bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl flex items-center justify-center">
-                    <MapPin className="h-7 w-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold">Bureau principal</h3>
-                    <p className="text-gray-300">Paris, France</p>
-                  </div>
-                </div>
-                <p className="text-white font-medium">
-                  123 Rue de la Tech<br />
-                  75001 Paris, France
-                </p>
-                <p className="text-sm text-gray-400 mt-2">Rendez-vous sur demande</p>
-              </div>
-            </div>
-
-            {/* Enhanced Contact Form */}
-            <div className="xl:col-span-3">
-              <div className="bg-white rounded-3xl p-10 shadow-2xl">
-                <div className="text-center mb-8">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-4">Parlons de votre projet</h3>
-                  <p className="text-gray-600">Obtenez une démonstration personnalisée en moins de 24h</p>
-                </div>
-                
-                <form className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="firstName"
-                        className="peer w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-gray-900 placeholder-transparent"
-                        placeholder="Prénom"
-                      />
-                      <label
-                        htmlFor="firstName"
-                        className="absolute left-4 -top-2.5 bg-white px-2 text-sm font-medium text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-focus:-top-2.5 peer-focus:text-sm peer-focus:text-blue-600"
-                      >
-                        Prénom
-                      </label>
-                    </div>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        id="lastName"
-                        className="peer w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-gray-900 placeholder-transparent"
-                        placeholder="Nom"
-                      />
-                      <label
-                        htmlFor="lastName"
-                        className="absolute left-4 -top-2.5 bg-white px-2 text-sm font-medium text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-focus:-top-2.5 peer-focus:text-sm peer-focus:text-blue-600"
-                      >
-                        Nom
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <input
-                      type="email"
-                      id="email"
-                      className="peer w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-gray-900 placeholder-transparent"
-                      placeholder="Email professionnel"
-                    />
-                    <label
-                      htmlFor="email"
-                      className="absolute left-4 -top-2.5 bg-white px-2 text-sm font-medium text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-focus:-top-2.5 peer-focus:text-sm peer-focus:text-blue-600"
-                    >
-                      Email professionnel
-                    </label>
-                  </div>
-
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="company"
-                      className="peer w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-gray-900 placeholder-transparent"
-                      placeholder="Entreprise"
-                    />
-                    <label
-                      htmlFor="company"
-                      className="absolute left-4 -top-2.5 bg-white px-2 text-sm font-medium text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-focus:-top-2.5 peer-focus:text-sm peer-focus:text-blue-600"
-                    >
-                      Entreprise
-                    </label>
-                  </div>
-
-                  <div className="relative">
-                    <select
-                      id="projectType"
-                      className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-gray-900"
-                    >
-                      <option value="">Type de projet</option>
-                      <option value="implementation">Implémentation complète</option>
-                      <option value="migration">Migration de données</option>
-                      <option value="integration">Intégration système</option>
-                      <option value="formation">Formation équipes</option>
-                      <option value="support">Support technique</option>
-                    </select>
-                  </div>
-
-                  <div className="relative">
-                    <textarea
-                      id="message"
-                      rows="5"
-                      className="peer w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0 transition-colors text-gray-900 placeholder-transparent resize-none"
-                      placeholder="Parlez-nous de votre projet"
-                    ></textarea>
-                    <label
-                      htmlFor="message"
-                      className="absolute left-4 -top-2.5 bg-white px-2 text-sm font-medium text-gray-600 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-placeholder-shown:top-4 peer-focus:-top-2.5 peer-focus:text-sm peer-focus:text-blue-600"
-                    >
-                      Parlez-nous de votre projet
-                    </label>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 text-white font-semibold py-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] hover:shadow-xl flex items-center justify-center space-x-3"
-                  >
-                    <span>Envoyer le message</span>
-                    <ArrowRight className="h-5 w-5" />
-                  </button>
-                </form>
-
-                {/* Features */}
-                <div className="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-gray-200">
-                  <div className="text-center">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    </div>
-                    <p className="text-xs text-gray-600 font-medium">Réponse 24h</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <Shield className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <p className="text-xs text-gray-600 font-medium">Données sécurisées</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                      <Users className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <p className="text-xs text-gray-600 font-medium">Expert dédié</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats Footer */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-white/20">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">
-                <RealTimeStatsDisplay 
-                  stats={loading ? "..." : stats.total_companies || 24} 
-                  className=""
-                  showIndicator={false}
-                />
-              </div>
-              <p className="text-gray-400 text-sm">Entreprises clientes</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">97%</div>
-              <p className="text-gray-400 text-sm">Satisfaction client</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">24h</div>
-              <p className="text-gray-400 text-sm">Temps de réponse</p>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-white mb-2">5★</div>
-              <p className="text-gray-400 text-sm">Note moyenne</p>
+              <h3 className="text-xl font-semibold mb-3">Email</h3>
+              <a href="mailto:contact@skyapp.fr" className="text-2xl font-bold text-green-400 hover:text-green-300 transition-colors">
+                contact@skyapp.fr
+              </a>
+              <p className="text-gray-400 text-sm mt-3">Réponse sous 24h</p>
             </div>
           </div>
         </div>
@@ -2657,14 +2194,14 @@ const RoleSelection = () => {
             <div className="flex items-center">
               <button
                 onClick={goBack}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="mr-2 sm:mr-4 p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <img 
                 src="/logo.png" 
                 alt="SkyApp Logo" 
-                className="w-48 h-48 rounded-lg object-cover logo-neon-effect"
+                className="w-28 h-28 sm:w-28 sm:h-28 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-lg object-cover logo-neon-effect"
               />
             </div>
             
@@ -3211,6 +2748,7 @@ const TechnicienLayout = () => {
   const [showDraftModal, setShowDraftModal] = useState(false);
   const [discardingDraftId, setDiscardingDraftId] = useState(null);
   const [isTabTransitioning, setIsTabTransitioning] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [searchToEdit, setSearchToEdit] = useState(null);
   // Set partagé pour tracker les recherches récemment finalisées
   const recentlyFinalizedRef = useRef(new Set());
@@ -3479,50 +3017,60 @@ const TechnicienLayout = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Apple-style Navigation with Back Button */}
       <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center h-14 sm:h-16">
+            <div className="flex items-center space-x-2 sm:space-x-0">
               <button
                 onClick={goBack}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <img 
                 src="/logo.png" 
                 alt="SkyApp Logo" 
-                className="w-48 h-48 rounded-lg object-cover logo-neon-effect"
+                className="w-28 h-28 sm:w-28 sm:h-28 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-lg object-cover logo-neon-effect"
               />
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <Button
                 variant="outline"
                 onClick={openDraftModal}
-                className="relative flex items-center"
+                className="relative flex items-center text-xs sm:text-sm px-2 sm:px-4"
               >
                 {draftsLoading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 animate-spin" />
                 ) : (
-                  <Clock className="h-4 w-4 mr-2" />
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                 )}
-                <span>Brouillon en attente</span>
+                <span className="hidden sm:inline">Brouillon en attente</span>
+                <span className="sm:hidden">Brouillon</span>
                 {drafts.length > 0 && (
                   <Badge
                     variant="destructive"
-                    className="ml-2 px-2 py-0 text-xs font-semibold"
+                    className="ml-1 sm:ml-2 px-1.5 sm:px-2 py-0 text-xs font-semibold"
                   >
                     {drafts.length}
                   </Badge>
                 )}
               </Button>
-              <span className="text-sm font-medium text-gray-700">Technicien</span>
+              <span className="hidden md:inline text-sm font-medium text-gray-700">Technicien</span>
               <Button
                 onClick={handleLogout}
                 variant="ghost"
-                className="text-gray-500 hover:text-gray-700 p-2"
+                className="text-gray-500 hover:text-gray-700 p-1.5 sm:p-2 hidden md:flex"
               >
                 <LogOut className="h-4 w-4" />
+              </Button>
+              
+              {/* Mobile menu burger */}
+              <Button
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                variant="ghost"
+                className="md:hidden text-gray-500 hover:text-gray-700 p-1.5 sm:p-2"
+              >
+                {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
               </Button>
             </div>
           </div>
@@ -3530,7 +3078,7 @@ const TechnicienLayout = () => {
       </nav>
 
       <Dialog open={showDraftModal} onOpenChange={(open) => (open ? setShowDraftModal(true) : closeDraftModal())}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Brouillons en attente</DialogTitle>
             <DialogDescription>
@@ -3636,45 +3184,121 @@ const TechnicienLayout = () => {
           />
         ) : (
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            {/* Apple-style Tab Navigation */}
-            <div className="flex justify-center mb-8">
-              <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
+            {/* Apple-style Tab Navigation - Desktop only */}
+            <div className="hidden md:flex justify-center mb-6 sm:mb-8 overflow-x-auto">
+              <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm min-w-max">
                 <TabsTrigger 
                   value="search" 
-                  className="flex items-center space-x-2 px-6 py-3 rounded-lg data-[state=active]:bg-gray-100 data-[state=active]:shadow-sm transition-all duration-200"
+                  className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-lg data-[state=active]:bg-gray-100 data-[state=active]:shadow-sm transition-all duration-200"
                   disabled={isTabTransitioning}
                 >
                   <Search className="h-4 w-4" />
-                  <span className="font-medium">Nouvelle Recherche</span>
+                  <span className="font-medium text-xs sm:text-sm md:text-base">Nouvelle</span>
+                  <span className="hidden md:inline font-medium">Recherche</span>
                 </TabsTrigger>
               <TabsTrigger 
                 value="history" 
-                className="flex items-center space-x-2 px-6 py-3 rounded-lg data-[state=active]:bg-gray-100 data-[state=active]:shadow-sm transition-all duration-200"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-lg data-[state=active]:bg-gray-100 data-[state=active]:shadow-sm transition-all duration-200"
                 disabled={isTabTransitioning}
               >
                 <History className="h-4 w-4" />
-                <span className="font-medium">Mes Recherches</span>
+                <span className="font-medium text-xs sm:text-sm md:text-base">Mes</span>
+                <span className="hidden md:inline font-medium">Recherches</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="planning" 
-                className="flex items-center space-x-2 px-6 py-3 rounded-lg data-[state=active]:bg-gray-100 data-[state=active]:shadow-sm transition-all duration-200"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-lg data-[state=active]:bg-gray-100 data-[state=active]:shadow-sm transition-all duration-200"
                 disabled={isTabTransitioning}
               >
                 <Calendar className="h-4 w-4" />
-                <span className="font-medium">Mes Missions</span>
+                <span className="font-medium text-xs sm:text-sm md:text-base">Missions</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="inventory" 
-                className="flex items-center space-x-2 px-6 py-3 rounded-lg data-[state=active]:bg-gray-100 data-[state=active]:shadow-sm transition-all duration-200"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-6 py-2 sm:py-3 rounded-lg data-[state=active]:bg-gray-100 data-[state=active]:shadow-sm transition-all duration-200"
                 disabled={isTabTransitioning}
               >
                 <Package className="h-4 w-4" />
-                <span className="font-medium">Inventaire</span>
+                <span className="font-medium text-xs sm:text-sm md:text-base">Inventaire</span>
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="search" className="mt-8">
+          {/* Mobile Navigation Menu */}
+          <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+            mobileNavOpen ? 'max-h-96 opacity-100 mb-6' : 'max-h-0 opacity-0'
+          }`}>
+            <div className="bg-white border-2 border-black rounded-xl shadow-lg p-2 space-y-2">
+              <button
+                onClick={() => {
+                  handleTabChange('search');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'search'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Search className="h-5 w-5" />
+                <span className="font-medium">Nouvelle Recherche</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('history');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'history'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <History className="h-5 w-5" />
+                <span className="font-medium">Mes Recherches</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('planning');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'planning'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Calendar className="h-5 w-5" />
+                <span className="font-medium">Missions</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('inventory');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'inventory'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Package className="h-5 w-5" />
+                <span className="font-medium">Inventaire</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileNavOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg bg-white text-red-600 hover:bg-red-50 transition-all"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="font-medium">Déconnexion</span>
+              </button>
+            </div>
+          </div>
+
+          <TabsContent value="search" className="mt-4 sm:mt-6 md:mt-8">
             {!selectedSearchType ? (
               <SearchTypeSelector
                 onSelect={(type) => {
@@ -3726,7 +3350,7 @@ const TechnicienLayout = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="history" className="mt-8">
+          <TabsContent value="history" className="mt-4 sm:mt-6 md:mt-8">
             <SearchHistory 
               onEditSearch={(search) => {
                 setSearchToEdit(search);
@@ -3740,7 +3364,7 @@ const TechnicienLayout = () => {
             <TechnicianPlanning />
           </TabsContent>
 
-          <TabsContent value="inventory" className="mt-8">
+          <TabsContent value="inventory" className="mt-4 sm:mt-6 md:mt-8">
             <InventoryScanner />
           </TabsContent>
         </Tabs>
@@ -17047,17 +16671,17 @@ const InviteManagementView = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-2xl p-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900">Inviter des Techniciens</h2>
-            <p className="text-gray-600 mt-1">Seuls les techniciens (User) peuvent être invités par un administrateur</p>
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border-0 shadow-2xl p-4 sm:p-6 lg:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h2 className="text-lg sm:text-2xl font-semibold text-gray-900">Inviter des Techniciens</h2>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">Seuls les techniciens (User) peuvent être invités par un administrateur</p>
           </div>
           <Button
             onClick={() => setShowForm(true)}
-            className="bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white rounded-2xl px-6 py-3 shadow-lg transform transition-all duration-200 hover:scale-105"
+            className="bg-gradient-to-r from-pink-600 to-pink-700 hover:from-pink-700 hover:to-pink-800 text-white rounded-xl sm:rounded-2xl px-4 sm:px-6 py-2.5 sm:py-3 shadow-lg transform transition-all duration-200 hover:scale-105 text-sm sm:text-base flex-shrink-0"
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-1.5 sm:mr-2" />
             Inviter un utilisateur
           </Button>
         </div>
@@ -17204,29 +16828,29 @@ const InviteManagementView = () => {
             const expired = isPending && isExpired(invite.expires_at);
             
             return (
-              <Card key={invite.id} className="bg-white/80 backdrop-blur-xl rounded-3xl border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
+              <Card key={invite.id} className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-3xl border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center">
-                          <Mail className="h-5 w-5 text-white" />
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex-shrink-0 flex items-center justify-center">
+                          <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900">{invite.email}</h3>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <Badge className={getRoleColor(invite.role)}>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-sm sm:text-lg font-semibold text-gray-900 truncate">{invite.email}</h3>
+                          <div className="flex flex-wrap items-center gap-1.5 sm:space-x-2 mt-1">
+                            <Badge className={`text-xs ${getRoleColor(invite.role)}`}>
                               {invite.role === 'TECHNICIEN' ? 'Technicien / User' : 
                                invite.role === 'BUREAU' ? 'Bureau' : 
                                invite.role === 'ADMIN' ? 'Admin' : invite.role}
                             </Badge>
-                            <Badge className={getStatusColor(invite.status)}>
+                            <Badge className={`text-xs ${getStatusColor(invite.status)}`}>
                               {isPending ? (expired ? 'Expirée' : 'En attente') : 
                                isAccepted ? 'Acceptée' : 
                                invite.status === 'CANCELLED' ? 'Annulée' : invite.status}
                             </Badge>
                             {expired && (
-                              <Badge className="bg-red-100 text-red-700">
+                              <Badge className="bg-red-100 text-red-700 text-xs">
                                 <Clock className="h-3 w-3 mr-1" />
                                 Expirée
                               </Badge>
@@ -17235,7 +16859,7 @@ const InviteManagementView = () => {
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-sm text-gray-600">
+                      <div className="ml-12 sm:ml-13 space-y-1 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0 mt-3 sm:mt-4 text-xs sm:text-sm text-gray-600">
                         <div>
                           <span className="font-medium">Envoyée le:</span> {formatDate(invite.created_at)}
                         </div>
@@ -17252,14 +16876,14 @@ const InviteManagementView = () => {
                       </div>
                     </div>
                     
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 ml-12 sm:ml-0 sm:flex-shrink-0">
                       {isPending && !expired && (
                         <>
                           <Button
                             onClick={() => resendInvite(invite.id)}
                             size="sm"
                             variant="outline"
-                            className="rounded-xl"
+                            className="rounded-xl text-xs sm:text-sm"
                           >
                             <Mail className="h-3 w-3 mr-1" />
                             Renvoyer
@@ -17268,7 +16892,7 @@ const InviteManagementView = () => {
                             onClick={() => cancelInvite(invite.id)}
                             size="sm"
                             variant="outline"
-                            className="rounded-xl text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="rounded-xl text-red-600 hover:text-red-700 hover:bg-red-50 text-xs sm:text-sm"
                           >
                             <X className="h-3 w-3 mr-1" />
                             Annuler
@@ -17279,7 +16903,7 @@ const InviteManagementView = () => {
                         <Button
                           onClick={() => resendInvite(invite.id)}
                           size="sm"
-                          className="bg-pink-600 hover:bg-pink-700 text-white rounded-xl"
+                          className="bg-pink-600 hover:bg-pink-700 text-white rounded-xl text-xs sm:text-sm"
                         >
                           <Mail className="h-3 w-3 mr-1" />
                           Renvoyer
@@ -17289,7 +16913,7 @@ const InviteManagementView = () => {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="rounded-xl text-green-600"
+                          className="rounded-xl text-green-600 text-xs sm:text-sm"
                           disabled
                         >
                           <CheckCircle className="h-3 w-3 mr-1" />
@@ -18224,6 +17848,7 @@ const BureauLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Charger les données utilisateur depuis localStorage
   useEffect(() => {
@@ -18282,35 +17907,46 @@ const BureauLayout = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Apple-style Navigation with Back Button */}
       <nav className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-between items-center h-20 py-3">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex justify-between items-center h-16 sm:h-20 py-2 sm:py-3">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Bouton retour - visible sur mobile */}
               <button
                 onClick={goBack}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                className="md:hidden p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-all duration-200"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
+              
+              {/* Mobile menu burger */}
+              <Button
+                onClick={() => setMobileNavOpen(!mobileNavOpen)}
+                variant="ghost"
+                className="md:hidden text-gray-500 hover:text-gray-700 p-2"
+              >
+                {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+              
               <img 
                 src="/logo.png" 
                 alt="SkyApp Logo" 
-                className="w-16 h-16 rounded-lg object-cover logo-neon-stable"
+                className="w-28 h-28 sm:w-28 sm:h-28 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-lg object-cover logo-neon-stable"
               />
-              <div className="h-8 w-px bg-gray-300"></div>
-              <div>
+              <div className="h-6 sm:h-8 w-px bg-gray-300 hidden sm:block"></div>
+              <div className="hidden sm:block">
                 <p className="text-sm font-semibold text-gray-900">{user?.name || user?.email}</p>
                 <p className="text-xs text-gray-500">{user?.role === 'ADMIN' ? 'Administrateur' : user?.role === 'BUREAU' ? 'Bureau' : 'Technicien'}</p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <Button
                 onClick={handleLogout}
                 variant="ghost"
-                className="text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200 flex items-center space-x-2"
+                className="text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200 flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm px-2 sm:px-3"
               >
-                <LogOut className="h-4 w-4" />
-                <span className="text-sm font-medium">Déconnexion</span>
+                <LogOut className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="font-medium hidden sm:inline">Déconnexion</span>
               </Button>
             </div>
           </div>
@@ -18318,112 +17954,256 @@ const BureauLayout = () => {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-8 px-6">
+      <main className="max-w-7xl mx-auto py-4 sm:py-6 md:py-8 px-4 sm:px-6">
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          {/* Apple-style Tab Navigation */}
-          <div className="flex justify-center mb-8 overflow-x-auto overflow-y-visible py-2">
-            <TabsList className="bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 p-1.5 rounded-2xl shadow-lg inline-flex min-w-max">
+          {/* Apple-style Tab Navigation - Desktop only */}
+          <div className="hidden md:flex justify-center mb-6 sm:mb-8 overflow-x-auto overflow-y-visible py-2">
+            <TabsList className="bg-gradient-to-r from-gray-50 to-gray-100 border-2 border-gray-200 p-1 sm:p-1.5 rounded-2xl shadow-lg inline-flex min-w-max">
               <TabsTrigger 
                 value="projects" 
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-5 py-2 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
               >
                 <Briefcase className="h-4 w-4" />
-                <span className="font-semibold">Mon Entreprise</span>
+                <span className="font-semibold text-xs sm:text-sm">Entreprise</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="quotes" 
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-5 py-2 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
               >
                 <Calculator className="h-4 w-4" />
-                <span className="font-semibold">Devis</span>
+                <span className="font-semibold text-xs sm:text-sm">Devis</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="planning" 
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-5 py-2 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
               >
                 <Calendar className="h-4 w-4" />
-                <span className="font-semibold">Planning</span>
+                <span className="font-semibold text-xs sm:text-sm">Planning</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="sites" 
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-5 py-2 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
               >
                 <Building className="h-4 w-4" />
-                <span className="font-semibold">Chantiers</span>
+                <span className="font-semibold text-xs sm:text-sm">Chantiers</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="invoices" 
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-5 py-2 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
               >
                 <FileText className="h-4 w-4" />
-                <span className="font-semibold">Facturation</span>
+                <span className="font-semibold text-xs sm:text-sm">Facturation</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="clients" 
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-5 py-2 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
               >
                 <Users className="h-4 w-4" />
-                <span className="font-semibold">Clients</span>
+                <span className="font-semibold text-xs sm:text-sm">Clients</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="catalog" 
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-5 py-2 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
               >
                 <ClipboardList className="h-4 w-4" />
-                <span className="font-semibold">Catalogue</span>
+                <span className="font-semibold text-xs sm:text-sm">Catalogue</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="invitations" 
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-5 py-2 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
               >
                 <UserPlus className="h-4 w-4" />
-                <span className="font-semibold">Invitations</span>
+                <span className="font-semibold text-xs sm:text-sm">Invitations</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="material" 
-                className="flex items-center space-x-2 px-5 py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 sm:px-4 md:px-5 py-2 sm:py-3 rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-blue-600 transition-all duration-200 whitespace-nowrap hover:bg-white/50"
               >
                 <Settings className="h-4 w-4" />
-                <span className="font-semibold">Matériel</span>
+                <span className="font-semibold text-xs sm:text-sm">Matériel</span>
               </TabsTrigger>
             </TabsList>
           </div>
 
+          {/* Mobile Navigation Menu */}
+          <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+            mobileNavOpen ? 'max-h-[600px] opacity-100 mb-6' : 'max-h-0 opacity-0'
+          }`}>
+            <div className="bg-white border-2 border-black rounded-xl shadow-lg p-2 space-y-2">
+              <button
+                onClick={() => {
+                  handleTabChange('projects');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'projects'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Briefcase className="h-5 w-5" />
+                <span className="font-medium">Entreprise</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('quotes');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'quotes'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Calculator className="h-5 w-5" />
+                <span className="font-medium">Devis</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('planning');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'planning'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Calendar className="h-5 w-5" />
+                <span className="font-medium">Planning</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('sites');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'sites'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Building className="h-5 w-5" />
+                <span className="font-medium">Chantiers</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('invoices');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'invoices'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <FileText className="h-5 w-5" />
+                <span className="font-medium">Facturation</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('clients');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'clients'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Users className="h-5 w-5" />
+                <span className="font-medium">Clients</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('catalog');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'catalog'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <ClipboardList className="h-5 w-5" />
+                <span className="font-medium">Catalogue</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('invitations');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'invitations'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <UserPlus className="h-5 w-5" />
+                <span className="font-medium">Invitations</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleTabChange('material');
+                  setMobileNavOpen(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
+                  activeTab === 'material'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <Settings className="h-5 w-5" />
+                <span className="font-medium">Matériel</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setMobileNavOpen(false);
+                }}
+                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg bg-white text-red-600 hover:bg-red-50 transition-all"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="font-medium">Déconnexion</span>
+              </button>
+            </div>
+          </div>
+
           {/* Onglet connexion supprimé pour les rôles non fondateur */}
 
-          <TabsContent value="projects" className="mt-8">
+          <TabsContent value="projects" className="mt-4 sm:mt-6 md:mt-8">
             <ProjectsHub />
           </TabsContent>
 
-          <TabsContent value="quotes" className="mt-8">
+          <TabsContent value="quotes" className="mt-4 sm:mt-6 md:mt-8">
             <QuoteCreate />
           </TabsContent>
 
-          <TabsContent value="planning" className="mt-8">
+          <TabsContent value="planning" className="mt-4 sm:mt-6 md:mt-8">
             <PlanningManagement />
           </TabsContent>
 
-          <TabsContent value="sites" className="mt-8">
+          <TabsContent value="sites" className="mt-4 sm:mt-6 md:mt-8">
             <WorksitesManagement />
           </TabsContent>
 
-          <TabsContent value="invoices" className="mt-8">
+          <TabsContent value="invoices" className="mt-4 sm:mt-6 md:mt-8">
             <InvoicingModule />
           </TabsContent>
 
-          <TabsContent value="clients" className="mt-8">
+          <TabsContent value="clients" className="mt-4 sm:mt-6 md:mt-8">
             <ClientsView />
           </TabsContent>
 
-          <TabsContent value="catalog" className="mt-8">
+          <TabsContent value="catalog" className="mt-4 sm:mt-6 md:mt-8">
             <CatalogManagement />
           </TabsContent>
 
-          <TabsContent value="invitations" className="mt-8">
+          <TabsContent value="invitations" className="mt-4 sm:mt-6 md:mt-8">
             <InviteManagementView />
           </TabsContent>
 
-          <TabsContent value="material" className="mt-8">
+          <TabsContent value="material" className="mt-4 sm:mt-6 md:mt-8">
             <MaterialManagement />
           </TabsContent>
         </Tabs>

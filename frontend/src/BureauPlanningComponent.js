@@ -6,6 +6,7 @@ import { Calendar, ChevronLeft, ChevronRight, Users, MapPin, Clock, Plus, Edit, 
 const API = process.env.REACT_APP_API_BASE_URL || `${process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001'}/api`;
 
 const BureauPlanningComponent = () => {
+  // Composant optimisé pour mobile - v2
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('week'); // 'week' or 'day'
   const [schedules, setSchedules] = useState([]);
@@ -185,42 +186,47 @@ const BureauPlanningComponent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 lg:p-6">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Planning Bureau</h1>
-          <p className="text-gray-600 mt-1">Gérez les missions et assignez les techniciens</p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setViewMode('day')}
-            className={`px-4 py-2 rounded-lg ${viewMode === 'day' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
-          >
-            Jour
-          </button>
-          <button
-            onClick={() => setViewMode('week')}
-            className={`px-4 py-2 rounded-lg ${viewMode === 'week' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700'}`}
-          >
-            Semaine
-          </button>
+      <div className="mb-4 lg:mb-6">
+        <div className="bg-white p-3 lg:p-4 rounded-lg shadow mb-3 lg:mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 truncate">Planning Bureau</h1>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 hidden sm:block">Gérez les missions et assignez les techniciens</p>
+            </div>
+            <div className="flex gap-2 ml-3">
+              <button
+                onClick={() => setViewMode('day')}
+                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base ${viewMode === 'day' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border'}`}
+              >
+                Jour
+              </button>
+              <button
+                onClick={() => setViewMode('week')}
+                className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg text-sm lg:text-base ${viewMode === 'week' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 border'}`}
+              >
+                <span className="hidden sm:inline">Semaine</span>
+                <span className="sm:hidden">Sem.</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Navigation date */}
-      <div className="bg-white p-4 rounded-lg shadow mb-6 flex items-center justify-between">
+      <div className="bg-white p-3 lg:p-4 rounded-lg shadow mb-4 lg:mb-6 flex items-center justify-between">
         <button
           onClick={() => {
             const newDate = new Date(currentDate);
             newDate.setDate(newDate.getDate() - (viewMode === 'week' ? 7 : 1));
             setCurrentDate(newDate);
           }}
-          className="p-2 hover:bg-gray-100 rounded"
+          className="p-1.5 lg:p-2 hover:bg-gray-100 rounded flex-shrink-0"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
-        <div className="text-lg font-semibold">
+        <div className="text-sm lg:text-lg font-semibold text-center px-2">
           {viewMode === 'week'
             ? `Semaine du ${getWeekDays()[0].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} au ${getWeekDays()[6].toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`
             : currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
@@ -231,17 +237,17 @@ const BureauPlanningComponent = () => {
             newDate.setDate(newDate.getDate() + (viewMode === 'week' ? 7 : 1));
             setCurrentDate(newDate);
           }}
-          className="p-2 hover:bg-gray-100 rounded"
+          className="p-1.5 lg:p-2 hover:bg-gray-100 rounded flex-shrink-0"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
         {/* Chantiers disponibles */}
-        <div className="col-span-3 bg-white p-4 rounded-lg shadow">
-          <h2 className="font-semibold text-lg mb-4">Chantiers à planifier</h2>
-          <div className="space-y-2 max-h-[600px] overflow-y-auto">
+        <div className="lg:col-span-3 bg-white p-3 lg:p-4 rounded-lg shadow">
+          <h2 className="font-semibold text-base lg:text-lg mb-3 lg:mb-4">Chantiers à planifier</h2>
+          <div className="space-y-2 max-h-[300px] lg:max-h-[600px] overflow-y-auto">
             {worksites.map(worksite => (
               <div
                 key={worksite.id}
@@ -263,21 +269,21 @@ const BureauPlanningComponent = () => {
         </div>
 
         {/* Calendrier */}
-        <div className="col-span-9">
+        <div className="lg:col-span-9">
           {viewMode === 'week' ? (
-            <div className="bg-white p-4 rounded-lg shadow">
-              <div className="grid grid-cols-7 gap-2">
+            <div className="bg-white p-3 lg:p-4 rounded-lg shadow overflow-x-auto">
+              <div className="grid grid-cols-7 gap-2 min-w-[700px]">
                 {getWeekDays().map((day, idx) => {
                   const daySchedules = getSchedulesForDate(day);
                   const isToday = day.toDateString() === new Date().toDateString();
                   return (
                     <div
                       key={idx}
-                      className={`min-h-[400px] border rounded-lg p-2 ${isToday ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'}`}
+                      className={`min-h-[350px] lg:min-h-[400px] border rounded-lg p-2 ${isToday ? 'bg-blue-50 border-blue-300' : 'bg-gray-50'}`}
                       onDragOver={(e) => e.preventDefault()}
                       onDrop={(e) => handleDrop(e, day)}
                     >
-                      <div className="font-semibold text-center mb-2 text-sm">
+                      <div className="font-semibold text-center mb-2 text-xs lg:text-sm">
                         {day.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })}
                       </div>
                       <div className="space-y-2">
@@ -322,8 +328,8 @@ const BureauPlanningComponent = () => {
               </div>
             </div>
           ) : (
-            <div className="bg-white p-6 rounded-lg shadow">
-              <h2 className="font-semibold text-lg mb-4">
+            <div className="bg-white p-4 lg:p-6 rounded-lg shadow">
+              <h2 className="font-semibold text-base lg:text-lg mb-3 lg:mb-4">
                 {currentDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </h2>
               <div className="space-y-3">
@@ -435,7 +441,7 @@ const BureauPlanningComponent = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">Heure début</label>
                   <input
