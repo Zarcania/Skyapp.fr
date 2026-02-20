@@ -588,22 +588,19 @@ async def register(user_data: RegisterRequest, request: Request):
         backend_base = os.getenv("BACKEND_URL", str(request.base_url).rstrip('/'))
         verify_url = f"{backend_base}/api/auth/verify-email?token={verification_token}"
         
-        smtp_user = os.getenv("SMTP_USER", "contact@skyapp.fr")
-        smtp_password = os.getenv("SMTP_PASSWORD", "")
+        import resend as resend_sdk
+        resend_api_key = os.getenv("RESEND_API_KEY", "")
         
         email_sent = False
         email_error = None
         
-        logging.info(f"📧 SMTP config: user={smtp_user}, password={'SET(' + str(len(smtp_password)) + ' chars)' if smtp_password else 'EMPTY'}, to={user_data.email}")
+        logging.info(f"📧 Resend config: key={'SET(' + str(len(resend_api_key)) + ' chars)' if resend_api_key else 'EMPTY'}, to={user_data.email}")
         logging.info(f"📧 verify_url={verify_url}")
         
-        if smtp_password:
+        if resend_api_key:
             try:
+                resend_sdk.api_key = resend_api_key
                 prenom = user_data.prenom or "Utilisateur"
-                msg = MIMEMultipart("alternative")
-                msg["Subject"] = "SkyApp - Confirmez votre adresse email"
-                msg["From"] = f"SkyApp <{smtp_user}>"
-                msg["To"] = user_data.email
                 
                 html_body = f"""
                 <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8f9fa; padding: 30px; border-radius: 12px;">
@@ -629,25 +626,23 @@ async def register(user_data: RegisterRequest, request: Request):
                     </p>
                 </div>
                 """
-                text_body = f"Bonjour {prenom},\n\nMerci de vous être inscrit sur SkyApp.\nPour confirmer votre email, cliquez sur ce lien : {verify_url}\n\nL'équipe SkyApp"
                 
-                msg.attach(MIMEText(text_body, "plain", "utf-8"))
-                msg.attach(MIMEText(html_body, "html", "utf-8"))
+                params = {
+                    "from": "SkyApp <contact@skyapp.fr>",
+                    "to": [user_data.email],
+                    "subject": "SkyApp - Confirmez votre adresse email",
+                    "html": html_body
+                }
                 
-                logging.info(f"📧 Connexion SMTP smtp.gmail.com:587...")
-                server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
-                server.starttls()
-                server.login(smtp_user, smtp_password)
-                server.sendmail(smtp_user, user_data.email, msg.as_string())
-                server.quit()
+                response = resend_sdk.Emails.send(params)
                 email_sent = True
-                logging.info(f"✅ Email de vérification envoyé à {user_data.email}")
+                logging.info(f"✅ Email de vérification envoyé via Resend à {user_data.email} (id={response.get('id', 'N/A')})")
             except Exception as email_err:
                 email_error = str(email_err)
-                logging.error(f"❌ Email de vérification non envoyé: {email_err}")
+                logging.error(f"❌ Email Resend non envoyé: {email_err}")
         else:
-            email_error = "SMTP_PASSWORD non configuré"
-            logging.error(f"❌ SMTP_PASSWORD est vide - email non envoyé")
+            email_error = "RESEND_API_KEY non configuré"
+            logging.error(f"❌ RESEND_API_KEY est vide - email non envoyé")
         
         return {
             "message": f"Compte créé ! Un email de vérification a été envoyé à {user_data.email}." if email_sent else f"Compte créé mais l'email n'a pas pu être envoyé: {email_error}",

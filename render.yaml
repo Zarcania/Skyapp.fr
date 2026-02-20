@@ -64,6 +64,10 @@ services:
       - key: SMTP_PASSWORD
         sync: false
       
+      # Resend API (envoi d'emails transactionnels)
+      - key: RESEND_API_KEY
+        sync: false
+      
       # URLs de l'application
       - key: FRONTEND_URL
         value: "https://www.skyapp.fr"
