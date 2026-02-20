@@ -1983,7 +1983,7 @@ const RegisterModal = ({ open, onClose }) => {
         password: formData.password
       });
 
-      const { access_token, user } = response.data;
+      const { access_token, user, requires_email_verification, message, email_sent, email_debug } = response.data;
       
       if (access_token) {
         // Compte actif → connexion directe
@@ -1991,9 +1991,15 @@ const RegisterModal = ({ open, onClose }) => {
         localStorage.setItem('user', JSON.stringify(user));
         onClose();
         window.location.href = '/role-selection';
+      } else if (requires_email_verification) {
+        // Vérification email requise
+        if (email_sent) {
+          setSuccessMessage(`Compte créé avec succès ! Un email de vérification a été envoyé à ${formData.email}. Vérifiez votre boîte de réception (et vos spams) puis cliquez sur le lien pour activer votre compte.`);
+        } else {
+          setError(`Compte créé mais l'email de vérification n'a pas pu être envoyé. Erreur: ${email_debug || 'inconnue'}. Contactez contact@skyapp.fr pour activer votre compte.`);
+        }
       } else {
-        // Pas de token mais compte créé → afficher message
-        setSuccessMessage(`Compte créé avec succès ! Un email de bienvenue a été envoyé à ${formData.email}. Vous pouvez maintenant vous connecter.`);
+        setSuccessMessage(message || `Compte créé ! Vous pouvez maintenant vous connecter.`);
       }
     } catch (err) {
       setError(err.response?.data?.detail || 'Erreur lors de l\'inscription');

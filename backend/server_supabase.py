@@ -591,6 +591,12 @@ async def register(user_data: RegisterRequest, request: Request):
         smtp_user = os.getenv("SMTP_USER", "contact@skyapp.fr")
         smtp_password = os.getenv("SMTP_PASSWORD", "")
         
+        email_sent = False
+        email_error = None
+        
+        logging.info(f"📧 SMTP config: user={smtp_user}, password={'SET(' + str(len(smtp_password)) + ' chars)' if smtp_password else 'EMPTY'}, to={user_data.email}")
+        logging.info(f"📧 verify_url={verify_url}")
+        
         if smtp_password:
             try:
                 prenom = user_data.prenom or "Utilisateur"
@@ -628,22 +634,30 @@ async def register(user_data: RegisterRequest, request: Request):
                 msg.attach(MIMEText(text_body, "plain", "utf-8"))
                 msg.attach(MIMEText(html_body, "html", "utf-8"))
                 
-                server = smtplib.SMTP("smtp.gmail.com", 587)
+                logging.info(f"📧 Connexion SMTP smtp.gmail.com:587...")
+                server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
                 server.starttls()
                 server.login(smtp_user, smtp_password)
                 server.sendmail(smtp_user, user_data.email, msg.as_string())
                 server.quit()
+                email_sent = True
                 logging.info(f"✅ Email de vérification envoyé à {user_data.email}")
             except Exception as email_err:
+                email_error = str(email_err)
                 logging.error(f"❌ Email de vérification non envoyé: {email_err}")
+        else:
+            email_error = "SMTP_PASSWORD non configuré"
+            logging.error(f"❌ SMTP_PASSWORD est vide - email non envoyé")
         
         return {
-            "message": f"Compte créé ! Un email de vérification a été envoyé à {user_data.email}.",
+            "message": f"Compte créé ! Un email de vérification a été envoyé à {user_data.email}." if email_sent else f"Compte créé mais l'email n'a pas pu être envoyé: {email_error}",
             "access_token": None,
             "token_type": "bearer",
             "user": user_response.data[0],
             "email_confirmed": False,
-            "requires_email_verification": True
+            "requires_email_verification": True,
+            "email_sent": email_sent,
+            "email_debug": email_error
         }
         
     except Exception as e:
