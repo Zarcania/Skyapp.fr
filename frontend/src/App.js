@@ -707,6 +707,7 @@ const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const [isVisible, setIsVisible] = useState({});
+  const [emailVerifiedBanner, setEmailVerifiedBanner] = useState(false);
   // Filtre entreprise pour le fondateur
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [companies, setCompanies] = useState([]);
@@ -743,6 +744,19 @@ const LandingPage = () => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Détecter ?verified=true dans l'URL (retour après clic dans l'email de vérification)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('verified') === 'true') {
+      setEmailVerifiedBanner(true);
+      setShowLoginModal(true);
+      // Nettoyer l'URL sans recharger la page
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Masquer le bandeau après 10 secondes
+      setTimeout(() => setEmailVerifiedBanner(false), 10000);
+    }
   }, []);
 
   // Charger liste entreprises si fondateur
@@ -1001,6 +1015,18 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Bandeau de confirmation email vérifiée */}
+      {emailVerifiedBanner && (
+        <div className="fixed top-0 left-0 right-0 z-[100] bg-green-500 text-white py-3 px-4 text-center shadow-lg animate-in slide-in-from-top" style={{animation: 'slideDown 0.4s ease-out'}}>
+          <div className="flex items-center justify-center gap-2">
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-medium">Email vérifié avec succès ! Vous pouvez maintenant vous connecter.</span>
+            <button onClick={() => setEmailVerifiedBanner(false)} className="ml-4 hover:bg-green-600 rounded-full p-1 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
       {/* Apple-style Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrollY > 50 
@@ -1957,17 +1983,17 @@ const RegisterModal = ({ open, onClose }) => {
         password: formData.password
       });
 
-      const { access_token, user, requires_email_verification } = response.data;
+      const { access_token, user } = response.data;
       
-      if (requires_email_verification) {
-        // Email de vérification envoyé → afficher le message de succès
-        setSuccessMessage(`Compte créé avec succès ! Un email de vérification a été envoyé à ${formData.email}. Veuillez cliquer sur le lien dans l'email pour activer votre compte.`);
-      } else {
-        // Email déjà confirmé → connexion directe
+      if (access_token) {
+        // Compte actif → connexion directe
         localStorage.setItem('token', access_token);
         localStorage.setItem('user', JSON.stringify(user));
         onClose();
         window.location.href = '/role-selection';
+      } else {
+        // Pas de token mais compte créé → afficher message
+        setSuccessMessage(`Compte créé avec succès ! Un email de bienvenue a été envoyé à ${formData.email}. Vous pouvez maintenant vous connecter.`);
       }
     } catch (err) {
       setError(err.response?.data?.detail || 'Erreur lors de l\'inscription');

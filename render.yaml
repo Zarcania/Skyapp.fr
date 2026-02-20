@@ -63,3 +63,9 @@ services:
         sync: false
       - key: SMTP_PASSWORD
         sync: false
+      
+      # URLs de l'application
+      - key: FRONTEND_URL
+        value: "https://www.skyapp.fr"
+      - key: BACKEND_URL
+        value: "https://skyapp-backend-itag.onrender.com"

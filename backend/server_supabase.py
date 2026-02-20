@@ -537,13 +537,19 @@ async def health_check():
 
 # Routes d'authentification
 @api_router.post("/auth/register")
-async def register(user_data: RegisterRequest):
-    """Inscription d'un nouvel utilisateur avec Supabase Auth + email de vérification"""
+async def register(user_data: RegisterRequest, request: Request):
+    """Inscription d'un nouvel utilisateur - compte INACTIF jusqu'à vérification email"""
     try:
-        # Créer l'utilisateur avec sign_up (envoie un email de vérification via SMTP)
-        auth_response = supabase_anon.auth.sign_up({
+        import secrets
+        import smtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+        
+        # Créer le compte INACTIF (email_confirm=False → l'utilisateur ne peut pas se connecter)
+        auth_response = supabase_service.auth.admin.create_user({
             "email": user_data.email,
-            "password": user_data.password
+            "password": user_data.password,
+            "email_confirm": False
         })
         
         if auth_response.user is None:
@@ -552,7 +558,6 @@ async def register(user_data: RegisterRequest):
         # Créer ou récupérer l'entreprise
         company_id = None
         if user_data.company_name:
-            # Créer une nouvelle entreprise
             company_response = supabase_service.table("companies").insert({
                 "name": user_data.company_name
             }).execute()
@@ -561,36 +566,124 @@ async def register(user_data: RegisterRequest):
         # Rôle: toute personne qui crée un compte devient ADMIN (fondateur inclus)
         role_value = "ADMIN"
 
-        # Créer l'entrée utilisateur dans notre table
+        # Générer un token de vérification unique
+        verification_token = secrets.token_urlsafe(32)
+
+        # Créer l'entrée utilisateur dans notre table (avec token de vérification)
         user_record = {
             "id": auth_response.user.id,
             "email": user_data.email,
             "first_name": user_data.prenom,
             "last_name": user_data.nom,
             "role": role_value,
-            "company_id": company_id
+            "company_id": company_id,
+            "email_verification_token": verification_token
         }
         
         user_response = supabase_service.table("users").insert(user_record).execute()
         
-        # Vérifier si une session a été retournée (email_confirm désactivé dans Supabase)
-        access_token = None
-        email_confirmed = False
-        if getattr(auth_response, 'session', None) and auth_response.session:
-            access_token = auth_response.session.access_token
-            email_confirmed = True
+        # Envoyer l'email de vérification via notre SMTP
+        frontend_url = os.getenv("FRONTEND_URL", "https://www.skyapp.fr")
+        # Construire l'URL de vérification pointant vers le BACKEND (pas le frontend)
+        backend_base = os.getenv("BACKEND_URL", str(request.base_url).rstrip('/'))
+        verify_url = f"{backend_base}/api/auth/verify-email?token={verification_token}"
+        
+        smtp_user = os.getenv("SMTP_USER", "contact@skyapp.fr")
+        smtp_password = os.getenv("SMTP_PASSWORD", "")
+        
+        if smtp_password:
+            try:
+                prenom = user_data.prenom or "Utilisateur"
+                msg = MIMEMultipart("alternative")
+                msg["Subject"] = "SkyApp - Confirmez votre adresse email"
+                msg["From"] = f"SkyApp <{smtp_user}>"
+                msg["To"] = user_data.email
+                
+                html_body = f"""
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8f9fa; padding: 30px; border-radius: 12px;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #1a1a1a; margin: 0;">SkyApp</h1>
+                        <p style="color: #666; margin: 5px 0 0;">Plateforme de Gestion BTP</p>
+                    </div>
+                    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h2 style="color: #1a1a1a; margin-top: 0;">Bonjour {prenom} !</h2>
+                        <p style="color: #333; font-size: 16px;">Merci de vous être inscrit sur SkyApp.</p>
+                        <p style="color: #333; font-size: 16px;">Pour activer votre compte, veuillez cliquer sur le bouton ci-dessous :</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="{verify_url}" 
+                               style="background-color: #000000; color: white; padding: 14px 40px; text-decoration: none; border-radius: 8px; font-size: 16px; font-weight: bold; display: inline-block;">
+                                Confirmer mon adresse email
+                            </a>
+                        </div>
+                        <p style="color: #666; font-size: 13px;">Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :</p>
+                        <p style="color: #999; font-size: 12px; word-break: break-all;">{verify_url}</p>
+                    </div>
+                    <p style="color: #999; font-size: 12px; text-align: center; margin-top: 20px;">
+                        Si vous n'avez pas créé de compte sur SkyApp, ignorez cet email.
+                    </p>
+                </div>
+                """
+                text_body = f"Bonjour {prenom},\n\nMerci de vous être inscrit sur SkyApp.\nPour confirmer votre email, cliquez sur ce lien : {verify_url}\n\nL'équipe SkyApp"
+                
+                msg.attach(MIMEText(text_body, "plain", "utf-8"))
+                msg.attach(MIMEText(html_body, "html", "utf-8"))
+                
+                server = smtplib.SMTP("smtp.gmail.com", 587)
+                server.starttls()
+                server.login(smtp_user, smtp_password)
+                server.sendmail(smtp_user, user_data.email, msg.as_string())
+                server.quit()
+                logging.info(f"✅ Email de vérification envoyé à {user_data.email}")
+            except Exception as email_err:
+                logging.error(f"❌ Email de vérification non envoyé: {email_err}")
         
         return {
-            "message": "Compte créé avec succès ! Vérifiez votre boîte mail pour activer votre compte.",
-            "access_token": access_token,
+            "message": f"Compte créé ! Un email de vérification a été envoyé à {user_data.email}.",
+            "access_token": None,
             "token_type": "bearer",
             "user": user_response.data[0],
-            "email_confirmed": email_confirmed,
-            "requires_email_verification": not email_confirmed
+            "email_confirmed": False,
+            "requires_email_verification": True
         }
         
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Erreur lors de l'inscription: {str(e)}")
+
+
+@api_router.get("/auth/verify-email")
+async def verify_email(token: str):
+    """Vérifie l'email d'un utilisateur via le token envoyé par email"""
+    try:
+        # Chercher l'utilisateur avec ce token
+        result = supabase_service.table("users").select("*").eq("email_verification_token", token).execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=400, detail="Lien de vérification invalide ou expiré")
+        
+        user = result.data[0]
+        user_id = user["id"]
+        
+        # Confirmer l'email dans Supabase Auth
+        supabase_service.auth.admin.update_user_by_id(user_id, {
+            "email_confirm": True
+        })
+        
+        # Supprimer le token de vérification dans notre table
+        supabase_service.table("users").update({
+            "email_verification_token": None
+        }).eq("id", user_id).execute()
+        
+        logging.info(f"✅ Email vérifié pour {user['email']}")
+        
+        # Rediriger vers la page de connexion avec un message de succès
+        frontend_url = os.getenv("FRONTEND_URL", "https://www.skyapp.fr")
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url=f"{frontend_url}/?verified=true")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Erreur lors de la vérification: {str(e)}")
 
 @api_router.post("/auth/invite")
 async def invite_user(invite: InviteRequest, user_data: dict = Depends(get_user_from_token)):
@@ -708,6 +801,9 @@ async def login(credentials: UserLogin):
     except HTTPException:
         raise
     except Exception as e:
+        error_msg = str(e).lower()
+        if "email not confirmed" in error_msg or "email_not_confirmed" in error_msg:
+            raise HTTPException(status_code=403, detail="Veuillez confirmer votre adresse email avant de vous connecter. Vérifiez votre boîte de réception (et vos spams).")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la connexion: {str(e)}")
 
 @api_router.post("/auth/refresh")
