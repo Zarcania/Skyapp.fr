@@ -538,9 +538,9 @@ async def health_check():
 # Routes d'authentification
 @api_router.post("/auth/register")
 async def register(user_data: RegisterRequest):
-    """Inscription d'un nouvel utilisateur avec Supabase Auth"""
+    """Inscription d'un nouvel utilisateur avec Supabase Auth + email de vérification"""
     try:
-        # Créer l'utilisateur avec Supabase Auth
+        # Créer l'utilisateur avec sign_up (envoie un email de vérification via SMTP)
         auth_response = supabase_anon.auth.sign_up({
             "email": user_data.email,
             "password": user_data.password
@@ -573,11 +573,20 @@ async def register(user_data: RegisterRequest):
         
         user_response = supabase_service.table("users").insert(user_record).execute()
         
+        # Vérifier si une session a été retournée (email_confirm désactivé dans Supabase)
+        access_token = None
+        email_confirmed = False
+        if getattr(auth_response, 'session', None) and auth_response.session:
+            access_token = auth_response.session.access_token
+            email_confirmed = True
+        
         return {
-            "message": "Utilisateur créé avec succès",
-            "access_token": auth_response.session.access_token if getattr(auth_response, 'session', None) else None,
+            "message": "Compte créé avec succès ! Vérifiez votre boîte mail pour activer votre compte.",
+            "access_token": access_token,
             "token_type": "bearer",
-            "user": user_response.data[0]
+            "user": user_response.data[0],
+            "email_confirmed": email_confirmed,
+            "requires_email_verification": not email_confirmed
         }
         
     except Exception as e:

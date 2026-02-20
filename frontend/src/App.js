@@ -1934,11 +1934,13 @@ const RegisterModal = ({ open, onClose }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccessMessage('');
 
     if (formData.password !== formData.confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
@@ -1955,13 +1957,18 @@ const RegisterModal = ({ open, onClose }) => {
         password: formData.password
       });
 
-      const { access_token, user } = response.data;
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('user', JSON.stringify(user));
+      const { access_token, user, requires_email_verification } = response.data;
       
-      onClose();
-      // Redirection automatique vers la sélection de rôle après inscription
-      window.location.href = '/role-selection';
+      if (requires_email_verification) {
+        // Email de vérification envoyé → afficher le message de succès
+        setSuccessMessage(`Compte créé avec succès ! Un email de vérification a été envoyé à ${formData.email}. Veuillez cliquer sur le lien dans l'email pour activer votre compte.`);
+      } else {
+        // Email déjà confirmé → connexion directe
+        localStorage.setItem('token', access_token);
+        localStorage.setItem('user', JSON.stringify(user));
+        onClose();
+        window.location.href = '/role-selection';
+      }
     } catch (err) {
       setError(err.response?.data?.detail || 'Erreur lors de l\'inscription');
     } finally {
@@ -2043,9 +2050,24 @@ const RegisterModal = ({ open, onClose }) => {
             <div className="text-red-500 text-sm">{error}</div>
           )}
 
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? 'Création du compte...' : 'Créer mon compte'}
-          </Button>
+          {successMessage && (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+              <div className="flex justify-center mb-2">
+                <Mail className="h-8 w-8 text-green-600" />
+              </div>
+              <p className="text-green-800 font-medium text-sm">{successMessage}</p>
+              <p className="text-green-600 text-xs mt-2">Pensez à vérifier vos spams si vous ne trouvez pas l'email.</p>
+              <Button onClick={onClose} variant="outline" className="mt-3 w-full">
+                Fermer
+              </Button>
+            </div>
+          )}
+
+          {!successMessage && (
+            <Button type="submit" disabled={loading} className="w-full">
+              {loading ? 'Création du compte...' : 'Créer mon compte'}
+            </Button>
+          )}
         </form>
       </DialogContent>
     </Dialog>
